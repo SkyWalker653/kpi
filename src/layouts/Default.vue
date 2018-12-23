@@ -12,8 +12,8 @@
         />
 
         <q-toolbar-title>
-          Quasar App
-          <!--<div slot="subtitle">Running on Quasar v{{ $q.version }}</div>-->
+          KPI Engine
+          <div slot="subtitle">Key Performance Indicators Engine</div>
         </q-toolbar-title>
       </q-toolbar>
     </q-layout-header>
@@ -33,17 +33,17 @@
             <q-item-side icon="home" />
             <q-item-main label="Home" />
           </q-item>
-          <q-item to="/payload-enginee" exact>
+          <q-item to="/payload-engine" exact>
             <q-item-side icon="home" />
-            <q-item-main label="Payload Enginee" />
+            <q-item-main label="Payload Engine" />
           </q-item>
-          <q-item to="/rule-enginee">
+          <q-item to="/rule-engine">
             <q-item-side icon="info_outline" />
-            <q-item-main label="Rule Enginee" />
+            <q-item-main label="Rule Engine" />
           </q-item>
-          <q-item to="/alert-enginee">
+          <q-item to="/alert-engine">
             <q-item-side icon="info_outline" />
-            <q-item-main label="Alert Enginee" />
+            <q-item-main label="Alert Engine" />
           </q-item>
           <q-item to="/about">
             <q-item-side icon="info_outline" />

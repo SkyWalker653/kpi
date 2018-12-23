@@ -3,9 +3,9 @@ import Router from 'vue-router'
 import DefaultLayout from './layouts/Default.vue'
 import Home from './views/Home.vue'
 import About from './views/About.vue'
-import PayloadEnginee from './views/PayloadEnginee.vue'
-import AlertEnginee from './views/AlertEnginee'
-import RuleEnginee from './views/RuleEnginee'
+import PayloadEngine from './views/PayloadEngine.vue'
+import AlertEngine from './views/AlertEngine'
+import RuleEngine from './views/RuleEngine'
 
 Vue.use(Router)
 
@@ -26,19 +26,19 @@ export default new Router({
           component: About
         },
         {
-          path: '/payload-enginee',
-          name: 'payload-enginee',
-          component: PayloadEnginee
+          path: '/payload-engine',
+          name: 'payload-engine',
+          component: PayloadEngine
         },
         {
-          path: '/alert-enginee',
-          name: 'alert-enginee',
-          component: AlertEnginee
+          path: '/alert-engine',
+          name: 'alert-engine',
+          component: AlertEngine
         },
         {
-          path: '/rule-enginee',
-          name: 'rule-enginee',
-          component: RuleEnginee
+          path: '/rule-engine',
+          name: 'rule-engine',
+          component: RuleEngine
         }
       ]
     }
