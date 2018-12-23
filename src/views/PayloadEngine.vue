@@ -54,7 +54,7 @@ export default {
   data: () => ({
     loading: false,
     filter: '',
-    payLoadCreateModalStatus: true,
+    payLoadCreateModalStatus: false,
     columns: [
       { name: 'slno', label: '#', align: 'left' },
       { name: 'payloadname', required: true, label: 'Payload Name', align: 'left', field: 'name', sortable: true },
