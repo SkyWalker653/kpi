@@ -12,14 +12,14 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
+      path: '',
+      name: 'home',
+      component: Home
+    },
+    {
       path: '/',
       component: DefaultLayout,
       children: [
-        {
-          path: '',
-          name: 'home',
-          component: Home
-        },
         {
           path: '/about',
           name: 'about',
