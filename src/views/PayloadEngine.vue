@@ -69,7 +69,6 @@
                 </q-card-actions>
               </q-card>
             </q-step>
-
             <q-step name="second" title="Step 2">
               <div v-if="isSamplePayload" style="padding: 25px">
                 <q-field label="Organization">
@@ -117,11 +116,10 @@
                 </q-field>
               </div>
               <q-stepper-navigation>
-                <q-btn color="negative" @click="$refs.stepper.previous()" label="Back" />
-                <q-btn flat color="positive" @click="submitStepTwoForm()" label="Next" />
+                <q-btn flat color="negative" @click="$refs.stepper.previous()" label="Back" />
+                <q-btn color="positive" @click="submitStepTwoForm()" label="Next" />
               </q-stepper-navigation>
             </q-step>
-
             <q-step title="Step 3" name="third">
               <vue-json-pretty
                 :data="formData.payloadData">
@@ -298,7 +296,15 @@ export default {
         companyName: this.formData.companyName,
         data: postData
       }).then(res => {
-        console.log('Response: ' + JSON.stringify(res))
+        console.log(res)
+        this.payLoadCreateModalStatus = false
+        this.clearFormData()
+        this.init()
+        // this.$q.notify('Payload created successfully.')
+        this.$q.notify(res.data.result)
+      }).catch((error) => {
+        console.log(error)
+        this.$q.notify(error.data.result)
       })
     },
     getPayloadData () {
@@ -342,6 +348,14 @@ export default {
           this.currentStep = 'third'
         }
       }
+    },
+    clearFormData () {
+      this.organisationName = ''
+      this.companyName = ''
+      this.payloadName = ''
+      this.payloadData = []
+      this.payloadStatus = ''
+      this.payloadDescription = null
     }
   },
   created () {
