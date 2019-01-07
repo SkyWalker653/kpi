@@ -73,29 +73,35 @@
             <q-step name="second" title="Step 2">
               <div v-if="isSamplePayload" style="padding: 25px">
                 <q-field label="Organization">
-                  <q-input v-model="formData.organisationName" color="primary" float-label="Enter organisation name" />
+                  <q-input v-model="formData.organisationName" :error="$v.formData.organisationName.$error" color="primary" float-label="Enter organisation name" />
+                </q-field>
+                <q-field label="Company">
+                  <q-input v-model="formData.companyName" :error="$v.formData.companyName.$error" color="primary" float-label="Enter company name" />
                 </q-field>
                 <q-field label="Payload Name">
-                  <q-input v-model="formData.payloadName" float-label="Enter payload name">
+                  <q-input v-model="formData.payloadName" :error="$v.formData.payloadName.$error" float-label="Enter payload name">
                     <q-autocomplete separator :static-data="{field: 'payload_name', list: staticPayloadData()}" @selected="getPayloadData()" />
                   </q-input>
                 </q-field>
                 <q-field label="Status">
-                  <q-select v-model="formData.payloadStatus" :options="selectPayloadStatus" float-label="Select Payload Status"/>
+                  <q-select v-model="formData.payloadStatus" :error="$v.formData.payloadStatus.$error" :options="selectPayloadStatus" float-label="Select Payload Status"/>
                 </q-field>
                 <q-field label="Description">
-                  <q-input v-model="formData.payloadDescription" color="primary" float-label="Enter company name" />
+                  <q-input v-model="formData.payloadDescription" :error="$v.formData.payloadDescription.$error" color="primary" float-label="Enter description" />
                 </q-field>
               </div>
               <div v-if="!isSamplePayload" style="padding: 25px">
                 <q-field label="Organization">
-                  <q-input v-model="formData.organisationName" color="primary" float-label="Enter organisation name" />
+                  <q-input v-model="formData.organisationName" :error="$v.formData.organisationName.$error" color="primary" float-label="Enter organisation name" />
+                </q-field>
+                <q-field label="Company">
+                  <q-input v-model="formData.companyName" :error="$v.formData.companyName.$error" color="primary" float-label="Enter company name" />
                 </q-field>
                 <q-field label="Status">
-                  <q-select v-model="formData.payloadStatus" :options="selectPayloadStatus" float-label="Select Payload Status"/>
+                  <q-select v-model="formData.payloadStatus" :error="$v.formData.payloadStatus.$error" :options="selectPayloadStatus" float-label="Select Payload Status"/>
                 </q-field>
                 <q-field label="Description">
-                  <q-input v-model="formData.payloadDescription" color="primary" float-label="Enter company name" />
+                  <q-input v-model="formData.payloadDescription" :error="$v.formData.payloadDescription.$error" color="primary" float-label="Enter company name" />
                 </q-field>
                 <q-field label="Payload Data">
                   <q-input
@@ -106,12 +112,13 @@
                     rows="7"
                     inverted-light
                     color="grey-1"
+                    :error="$v.formData.payloadData.$error"
                   />
                 </q-field>
               </div>
               <q-stepper-navigation>
                 <q-btn color="negative" @click="$refs.stepper.previous()" label="Back" />
-                <q-btn flat color="positive" @click="$refs.stepper.next()" label="Next" />
+                <q-btn flat color="positive" @click="submitStepTwoForm()" label="Next" />
               </q-stepper-navigation>
             </q-step>
 
@@ -135,7 +142,7 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
-    <q-modal v-model="payLoadDetailShowModal" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+    <q-modal v-model="payLoadDetailShowModal" :content-css="{minWidth: '50vw'}">
       <q-modal-layout>
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Description</q-toolbar-title>
@@ -143,8 +150,11 @@
 
         <div class="layout-padding">
           <q-card class="transition-generic">
-          <q-card-main class="q-pa-none">
-            <q-list no-border>
+          <q-card-main class="q-pa-30">
+            <vue-json-pretty
+              :data="payloadFullDescription">
+            </vue-json-pretty>
+            <!--<q-list no-border>
               <q-item>
                 <q-item-main><q-item-tile label>Payload User</q-item-tile></q-item-main>
                 <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_user }}</q-item-tile></q-item-side>
@@ -173,7 +183,7 @@
                 <q-item-main><q-item-tile label>payload_value</q-item-tile></q-item-main>
                 <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_value }}</q-item-tile></q-item-side>
               </q-item>
-            </q-list>
+            </q-list>-->
           </q-card-main>
         </q-card>
         </div>
@@ -194,6 +204,7 @@ import { mapGetters } from 'vuex'
 import VueJsonPretty from 'vue-json-pretty'
 import QModal from 'quasar-framework/src/components/modal/QModal'
 import QModalLayout from 'quasar-framework/src/components/modal/QModalLayout'
+import { required } from 'vuelidate/lib/validators'
 
 export default {
   data: () => ({
@@ -237,6 +248,16 @@ export default {
       }
     ]
   }),
+  validations: {
+    formData: {
+      organisationName: { required },
+      companyName: { required },
+      payloadName: { required },
+      payloadData: { required },
+      payloadStatus: { required },
+      payloadDescription: { required }
+    }
+  },
   computed: {
     ...mapGetters('payload', ['payloades'])
   },
@@ -255,8 +276,12 @@ export default {
     viewSamplePayload (val) {
       if (val) {
         this.isSamplePayload = true
+        this.formData.payloadData = []
+        this.$v.formData.$reset()
       } else {
         this.isSamplePayload = false
+        this.formData.payloadData = []
+        this.$v.formData.$reset()
       }
       this.currentStep = 'second'
     },
@@ -270,7 +295,7 @@ export default {
 
       store.dispatch('payload/create', {
         organisation: this.formData.organisationName,
-        payloadName: this.formData.payloadName,
+        companyName: this.formData.companyName,
         data: postData
       }).then(res => {
         console.log('Response: ' + JSON.stringify(res))
@@ -287,9 +312,8 @@ export default {
       })
     },
     showPayloadDetails (data) {
-      this.payloadFullDescription = data
+      this.payloadFullDescription = JSON.parse(data.payload_value)
       this.payLoadDetailShowModal = true
-      console.log(data)
     },
     staticPayloadData () {
       /* for (var i = 0; i < this.payloades.length; i++) {
@@ -302,6 +326,22 @@ export default {
       })
 
       return this.payloades
+    },
+    submitStepTwoForm () {
+      this.$v.formData.$touch()
+      if (this.isSamplePayload) {
+        if (this.$v.formData.organisationName.$error || this.$v.formData.companyName.$error || this.$v.formData.payloadName.$error || this.$v.formData.payloadStatus.$error || this.$v.formData.payloadDescription.$error) {
+          this.$q.notify('Please fill all the fields.')
+        } else {
+          this.currentStep = 'third'
+        }
+      } else {
+        if (this.$v.formData.organisationName.$error || this.$v.formData.companyName.$error || this.$v.formData.payloadData.$error || this.$v.formData.payloadStatus.$error || this.$v.formData.payloadDescription.$error) {
+          this.$q.notify('Please fill all the fields.')
+        } else {
+          this.currentStep = 'third'
+        }
+      }
     }
   },
   created () {

@@ -8,8 +8,8 @@ export default {
       })
   },
 
-  create (organisation, payloadName, data) {
-    return axios.post(`payload/${organisation}/${payloadName}`, data)
+  create (organisation, companyName, data) {
+    return axios.post(`payload/${organisation}/${companyName}`, data)
       .then(response => {
         return response
       })

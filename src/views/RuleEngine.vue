@@ -38,7 +38,6 @@
         <q-tr :props="props">
           <q-td key="slno" :props="props">
             <q-checkbox color="primary" v-model="props.expand" checked-icon="remove" unchecked-icon="add" class="q-mr-md" />
-            {{ props.row.measure_id }}
           </q-td>
           <q-td key="measurementid" :props="props">{{ props.row.measure_id }}</q-td>
           <q-td key="payloadname" :props="props">{{ props.row.measure_payload_name }}</q-td>

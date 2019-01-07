@@ -28,8 +28,8 @@ export default {
         })
         .finally(() => {})
     },
-    create (context, { organisation, payloadName, data }) {
-      return PayloadApi.create(organisation, payloadName, data)
+    create (context, { organisation, companyName, data }) {
+      return PayloadApi.create(organisation, companyName, data)
         .then(res => {
           return res
         })

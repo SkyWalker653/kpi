@@ -1,12 +1,17 @@
 <template>
   <q-layout>
-    <q-page-container>
+    <q-page-container class="page-wrapper">
       <q-page>
-        <div class="row gutter-md layout-padding">
+        <div class="row">
+          <div class="col-12">
+            <h1 class="text-center text-primary text-weight-medium">KPI</h1>
+          </div>
+        </div>
+        <div class="row gutter-md layout-padding absolute-center" style="width: 100%">
           <div class="col-4">
-            <q-card>
+            <q-card class="card-wrap">
               <q-card-main class="text-center">
-                <img src="../assets/img/payload.svg">
+                <img class="ico-logo" src="../assets/img/payload.svg">
               </q-card-main>
               <q-card-separator />
               <q-card-actions>
@@ -15,9 +20,9 @@
             </q-card>
           </div>
           <div class="col-4">
-            <q-card>
+            <q-card class="card-wrap">
               <q-card-main class="text-center">
-                <img src="../assets/img/clipboard.svg">
+                <img class="ico-logo" src="../assets/img/clipboard.svg">
               </q-card-main>
               <q-card-separator />
               <q-card-actions>
@@ -26,9 +31,9 @@
             </q-card>
           </div>
           <div class="col-4">
-            <q-card>
+            <q-card class="card-wrap">
               <q-card-main class="text-center">
-                <img src="../assets/img/notification.svg">
+                <img class="ico-logo" src="../assets/img/notification.svg">
               </q-card-main>
               <q-card-separator />
               <q-card-actions>
@@ -53,5 +58,8 @@ export default {
 </script>
 
 <style scoped>
-  .q-card-actions { padding: 0; }
+  .page-wrapper { background-color: #eeeeee; }
+  .card-wrap { background-color: #ffffff; }
+  .card-wrap:hover { cursor: pointer; box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 5px 8px rgba(0,0,0,.14), 0 1px 14px rgba(0,0,0,.12); }
+  .ico-logo { height: 160px; }
 </style>

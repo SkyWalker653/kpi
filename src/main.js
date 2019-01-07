@@ -11,6 +11,9 @@ import 'quasar-extras/material-icons'
 import 'quasar-extras/fontawesome'
 import axios from 'axios'
 import Quasar from 'quasar'
+import Vuelidate from 'vuelidate'
+
+Vue.use(Vuelidate)
 
 Vue.use(Quasar, {
   config: {}
