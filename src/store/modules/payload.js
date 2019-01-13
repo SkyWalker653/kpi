@@ -1,4 +1,3 @@
-import store from 'vuex-store'
 import PayloadApi from '@/api/Payload'
 
 export default {
@@ -35,6 +34,41 @@ export default {
         })
         .catch((error) => {
           console.log('Create role Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    testPayload (context, { organisation, company, data }) {
+      console.log('Org: ' + organisation)
+      console.log('Comp: ' + company)
+      console.log('Data: ' + JSON.stringify(data))
+      return PayloadApi.testPayload(organisation, company, data)
+        .then(res => {
+          console.log(res)
+          return res
+        })
+        .catch((error) => {
+          console.log('Try rule Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    testPayloadNotification (context, { refId }) {
+      return PayloadApi.testPayloadNotification(refId)
+        .then(res => {
+          return res.result
+        })
+        .catch((error) => {
+          console.log('Try rule Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    markNotificationAsRead (context, { refId }) {
+      return PayloadApi.markNotificationAsRead(refId)
+        .then(res => {
+          console.log(res)
+          return res.result
+        })
+        .catch((error) => {
+          console.log('Try notification Error: ' + JSON.stringify(error))
         })
         .finally(() => {})
     }

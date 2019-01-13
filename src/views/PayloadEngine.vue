@@ -25,6 +25,10 @@
               <q-item-side icon="visibility" inverted color="tertiary" />
               <q-item-main label>Show</q-item-main>
             </q-item>
+            <q-item dense v-close-overlay @click.native="showPayloadTryModal(props.row)">
+              <q-item-side icon="visibility" inverted color="tertiary" />
+              <q-item-main label>Try</q-item-main>
+            </q-item>
           </q-list>
         </q-btn-dropdown>
       </q-td>
@@ -32,7 +36,6 @@
       <template slot="top-left" slot-scope="props">
         <q-search hide-underline color="secondary" v-model="filter" class="col-6" />
       </template>
-
       <template slot="top-right" slot-scope="props" class="column">
         <q-btn round color="secondary" icon="add" @click.prevent="showCreatePayloadModal()" />
       </template>
@@ -46,10 +49,9 @@
       </div>
     </q-table>
 
-    <q-modal v-model="payLoadCreateModalStatus" :content-css="{minWidth: '80vw', minHeight: '80vh'}">
+    <q-modal v-model="payLoadCreateModalStatus" :content-css="{minWidth: '60vw', minHeight: '80vh'}">
       <q-modal-layout>
-        <div>
-          <q-stepper ref="stepper" color="secondary" v-model="currentStep">
+        <q-stepper ref="stepper" color="secondary" v-model="currentStep">
             <q-step class="no-outline" default name="first" title="Step 1" subtitle="Here we go">
               <q-card>
                 <q-card-title class="text-deep-orange text-weight-bold">
@@ -63,9 +65,9 @@
                   <div class="q-title">Manual Payload</div>
                   <p>You have to follow the steps of choosing multiple fields and forming the json for testing.</p>
                 </q-card-main>
-                <q-card-actions>
-                  <q-btn color="negative" @click="viewSamplePayload(true)" label="Yes" />
-                  <q-btn flat color="positive" @click="viewSamplePayload(false)" label="No" />
+                <q-card-actions class="justify-center">
+                  <q-btn color="indigo" class="q-px-40" @click="viewSamplePayload(true)" label="Yes" />
+                  <q-btn color="green" class="q-px-40" @click="viewSamplePayload(false)" label="No" />
                 </q-card-actions>
               </q-card>
             </q-step>
@@ -116,7 +118,7 @@
                 </q-field>
               </div>
               <q-stepper-navigation>
-                <q-btn flat color="negative" @click="$refs.stepper.previous()" label="Back" />
+                <q-btn flat color="negative" class="q-mr-sm" @click="$refs.stepper.previous()" label="Back" />
                 <q-btn color="positive" @click="submitStepTwoForm()" label="Next" />
               </q-stepper-navigation>
             </q-step>
@@ -126,13 +128,11 @@
               </vue-json-pretty>
               <!--<pre>{{ formData.payloadData }}</pre>-->
               <q-stepper-navigation>
-                <q-btn flat color="negative" @click="$refs.stepper.previous()" label="Back" />
+                <q-btn flat color="negative" class="q-mr-sm" @click="$refs.stepper.previous()" label="Back" />
                 <q-btn color="positive" @click="createPayload()" label="Create Payload" />
               </q-stepper-navigation>
             </q-step>
         </q-stepper>
-        </div>
-
         <q-toolbar slot="footer">
           <q-toolbar-title>
             <q-btn flat v-close-overlay label="close"></q-btn>
@@ -145,49 +145,36 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Description</q-toolbar-title>
         </q-toolbar>
-
         <div class="layout-padding">
           <q-card class="transition-generic">
           <q-card-main class="q-pa-30">
             <vue-json-pretty
               :data="payloadFullDescription">
             </vue-json-pretty>
-            <!--<q-list no-border>
-              <q-item>
-                <q-item-main><q-item-tile label>Payload User</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_user }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_organisation</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_organisation }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_name</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_name }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_description</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_description }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_status</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_status }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_last_updated</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_last_updated }}</q-item-tile></q-item-side>
-              </q-item>
-              <q-item>
-                <q-item-main><q-item-tile label>payload_value</q-item-tile></q-item-main>
-                <q-item-side right><q-item-tile>{{ payloadFullDescription.payload_value }}</q-item-tile></q-item-side>
-              </q-item>
-            </q-list>-->
           </q-card-main>
         </q-card>
         </div>
-
         <q-toolbar slot="footer">
           <q-toolbar-title>
+            <q-btn flat v-close-overlay label="close"></q-btn>
+          </q-toolbar-title>
+        </q-toolbar>
+      </q-modal-layout>
+    </q-modal>
+    <q-modal v-model="payLoadTryModal" :content-css="{minWidth: '40vw'}">
+      <q-modal-layout>
+        <q-toolbar slot="header">
+          <q-toolbar-title>Payload Try</q-toolbar-title>
+        </q-toolbar>
+        <div class="layout-padding">
+          <q-input v-if="payloadTest.responseData === ''" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <div v-if="payloadTest.responseData !== ''">
+            <pre>{{this.responseData}}</pre>
+          </div>
+        </div>
+        <q-toolbar slot="footer">
+          <q-toolbar-title class="text-right">
+            <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
         </q-toolbar>
@@ -200,8 +187,6 @@
 import store from 'vuex-store'
 import { mapGetters } from 'vuex'
 import VueJsonPretty from 'vue-json-pretty'
-import QModal from 'quasar-framework/src/components/modal/QModal'
-import QModalLayout from 'quasar-framework/src/components/modal/QModalLayout'
 import { required } from 'vuelidate/lib/validators'
 
 export default {
@@ -211,8 +196,16 @@ export default {
     filter: '',
     payLoadCreateModalStatus: false,
     payLoadDetailShowModal: false,
+    payLoadTryModal: false,
     payloadFullDescription: [],
     isSamplePayload: true,
+    payloadTest: {
+      organisation: '',
+      company: '',
+      data: '',
+      isResponseAvailable: '',
+      responseData: ''
+    },
     columns: [
       { name: 'slno', label: '#', align: 'left' },
       { name: 'organisation', label: 'Organisation', field: 'payload_organisation', align: 'left' },
@@ -260,13 +253,11 @@ export default {
     ...mapGetters('payload', ['payloades'])
   },
   components: {
-    QModalLayout,
-    QModal,
     VueJsonPretty
   },
   methods: {
     init () {
-      store.dispatch('payload/list', {})
+      store.dispatch('payload/list')
     },
     showCreatePayloadModal () {
       this.payLoadCreateModalStatus = true
@@ -295,23 +286,27 @@ export default {
         organisation: this.formData.organisationName,
         companyName: this.formData.companyName,
         data: postData
-      }).then(res => {
-        console.log(res)
-        this.payLoadCreateModalStatus = false
-        this.clearFormData()
-        this.init()
-        // this.$q.notify('Payload created successfully.')
-        this.$q.notify(res.data.result)
-      }).catch((error) => {
-        console.log(error)
-        this.$q.notify(error.data.result)
       })
+        .then(res => {
+          this.payLoadCreateModalStatus = false
+          this.clearFormData()
+          this.init()
+          this.$q.notify({
+            message: res.data.result,
+            type: 'positive'
+          })
+        })
+        .catch((error) => {
+          this.$q.notify({
+            message: error.data.result,
+            type: 'negative'
+          })
+        })
     },
     getPayloadData () {
       store.dispatch('payload/list').then((res) => {
         for (var i = 0; i < res.result.length; i++) {
           if (res.result[i].payload_name === this.formData.payloadName) {
-            // console.log(this.parsedData[i])
             this.formData.payloadData = JSON.parse(res.result[i].payload_value)
           }
         }
@@ -321,16 +316,16 @@ export default {
       this.payloadFullDescription = JSON.parse(data.payload_value)
       this.payLoadDetailShowModal = true
     },
+    showPayloadTryModal (data) {
+      console.log(data)
+      this.payloadTest.organisation = data.payload_organisation
+      this.payloadTest.company = data.payload_name
+      this.payLoadTryModal = true
+    },
     staticPayloadData () {
-      /* for (var i = 0; i < this.payloades.length; i++) {
-        this.payloades[i].push({
-          'label': this.payloades[i].payload_name
-        })
-      } */
       this.payloades.forEach(item => {
         item.label = item.payload_name
       })
-
       return this.payloades
     },
     submitStepTwoForm () {
@@ -350,12 +345,36 @@ export default {
       }
     },
     clearFormData () {
-      this.organisationName = ''
-      this.companyName = ''
-      this.payloadName = ''
-      this.payloadData = []
-      this.payloadStatus = ''
-      this.payloadDescription = null
+      this.formData.organisationName = ''
+      this.formData.companyName = ''
+      this.formData.payloadName = ''
+      this.formData.payloadData = []
+      this.formData.payloadStatus = ''
+      this.formData.payloadDescription = null
+      this.$v.formData.$reset()
+      this.currentStep = 'first'
+    },
+    submitTryPayload () {
+      store.dispatch('payload/testPayload', {
+        organisation: this.payloadTest.organisation,
+        company: this.payloadTest.company,
+        data: JSON.parse(this.payloadTest.data || {})
+      })
+        .then(res => {
+          this.payLoadTryModal = false
+          this.responseData = res
+        })
+        .catch((error) => {
+          this.$q.notify({
+            message: error.data,
+            type: 'negative'
+          })
+        })
+        .finally(() => {
+          this.payloadTest.organisation = ''
+          this.payloadTest.company = ''
+          this.payloadTest.data = ''
+        })
     }
   },
   created () {

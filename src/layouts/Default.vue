@@ -34,22 +34,25 @@
             <q-item-main label="Home" />
           </q-item>
           <q-item to="/payload-engine" exact>
-            <q-item-side icon="home" />
+            <q-item-side icon="account_balance" />
             <q-item-main label="Payload Engine" />
           </q-item>
           <q-item to="/rule-engine">
-            <q-item-side icon="info_outline" />
+            <q-item-side icon="assignment" />
             <q-item-main label="Rule Engine" />
           </q-item>
           <q-item to="/alert-engine">
-            <q-item-side icon="info_outline" />
+            <q-item-side icon="notifications_active" />
             <q-item-main label="Alert Engine" />
+          </q-item>
+          <q-item to="/measure-notification">
+            <q-item-side icon="speaker_notes" />
+            <q-item-main label="Measure Notification" />
           </q-item>
           <q-item to="/about">
             <q-item-side icon="info_outline" />
             <q-item-main label="About" />
           </q-item>
-
           <!--<q-item-separator />
           <q-list-header>Essential Links</q-list-header>
           <q-item @click.native="openURL('http://quasar-framework.org')">

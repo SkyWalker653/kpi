@@ -6,6 +6,7 @@ import About from './views/About.vue'
 import PayloadEngine from './views/PayloadEngine.vue'
 import AlertEngine from './views/AlertEngine'
 import RuleEngine from './views/RuleEngine'
+import MeasureNotification from './views/MeasureNotification'
 
 Vue.use(Router)
 
@@ -39,6 +40,11 @@ export default new Router({
           path: '/rule-engine',
           name: 'rule-engine',
           component: RuleEngine
+        },
+        {
+          path: '/measure-notification',
+          name: 'measure-notification',
+          component: MeasureNotification
         }
       ]
     }

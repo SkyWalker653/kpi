@@ -1,5 +1,6 @@
 import store from 'vuex-store'
 import RulesEngineApi from '@/api/RulesEngine'
+import PayloadApi from '@/api/Payload'
 
 export default {
   namespaced: true,
@@ -40,7 +41,37 @@ export default {
           console.log('Error fetching data. Error log: ' + JSON.stringify(error))
         })
         .finally(() => {})
-    }
+    },
+    create (context, data) {
+      return RulesEngineApi.create(data)
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Create role Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    payloadNames ({ commit }) {
+      return RulesEngineApi.payloadNames()
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Error fetching data. Error log: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    fieldValue ({ commit }, key) {
+      return RulesEngineApi.fieldValue(key)
+        .then(res => {
+          return res.result
+        })
+        .catch((error) => {
+          console.log('Error fetching data. Error log: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
   },
   getters: {
     /* rulesEngine (state) {

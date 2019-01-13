@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "lodash": "^4.17.11",
     "quasar-extras": "^2.0.4",
     "quasar-framework": "^0.17.0",
     "vue": "^2.5.17",
