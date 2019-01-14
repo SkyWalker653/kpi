@@ -38,19 +38,21 @@ export default {
       }
       store.dispatch('payload/testPayloadNotification', { refId: this.referenceId })
         .then(res => {
-          this.measureNotifications = res
-          // this.markNotificationasRead(res.id)
+          if (res[0].error) {
+            this.$q.notify({
+              message: res[0].error,
+              type: 'negative'
+            })
+          } else {
+            this.referenceId = ''
+            this.measureNotifications = res
+            // this.markNotificationasRead(res.id)
+          }
         })
         .catch((error) => {
           console.log(error)
-          this.$q.notify({
-            message: 'An error occurred. Please try again.',
-            type: 'negative'
-          })
         })
-        .finally(() => {
-          this.referenceId = ''
-        })
+        .finally(() => {})
     },
     markNotificationasRead (refId) {
       store.dispatch('payload/markNotificationAsRead', { 'refId': refId })

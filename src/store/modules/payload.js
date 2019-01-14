@@ -54,10 +54,11 @@ export default {
     testPayloadNotification (context, { refId }) {
       return PayloadApi.testPayloadNotification(refId)
         .then(res => {
-          return res.result
+          return res.data.result
         })
         .catch((error) => {
-          console.log('Try rule Error: ' + JSON.stringify(error))
+          console.log(error)
+          return [{ 'error': 'Record not found!' }]
         })
         .finally(() => {})
     },

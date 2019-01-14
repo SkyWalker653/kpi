@@ -161,7 +161,7 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
-    <q-modal v-model="payLoadTryModal" :content-css="{minWidth: '40vw'}">
+    <q-modal @hide="clearTryPayloadForm()" v-model="payLoadTryModal" :content-css="{minWidth: '40vw'}">
       <q-modal-layout>
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Try</q-toolbar-title>
@@ -362,7 +362,6 @@ export default {
         data: JSON.parse(this.payloadTest.data || {})
       })
         .then(res => {
-          // this.payLoadTryModal = false
           this.payloadTest.responseData = res
         })
         .catch(error => {
@@ -376,6 +375,12 @@ export default {
           this.payloadTest.company = ''
           this.payloadTest.data = ''
         })
+    },
+    clearTryPayloadForm () {
+      this.payloadTest.organisation = ''
+      this.payloadTest.company = ''
+      this.payloadTest.data = ''
+      this.payloadTest.responseData = ''
     }
   },
   created () {

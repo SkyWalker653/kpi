@@ -47,10 +47,6 @@ export default {
         .then(res => {
           return res
         })
-        .catch((error) => {
-          console.log('Create role Error: ' + JSON.stringify(error))
-        })
-        .finally(() => {})
     },
     payloadNames ({ commit }) {
       return RulesEngineApi.payloadNames()
@@ -71,7 +67,7 @@ export default {
           console.log('Error fetching data. Error log: ' + JSON.stringify(error))
         })
         .finally(() => {})
-    },
+    }
   },
   getters: {
     /* rulesEngine (state) {

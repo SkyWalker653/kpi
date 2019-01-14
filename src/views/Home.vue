@@ -37,7 +37,7 @@
             </div>
           </div>
           <div class="col-6">
-            <div class="wrap">
+            <div class="wrap" @click="redirectTo('measure-notification')">
               <div class="ico-wrap">
                 <span class="mbr-iconfont fa-volume-up fa"></span>
               </div>

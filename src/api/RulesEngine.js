@@ -16,7 +16,7 @@ export default {
   create (data) {
     return axios.post(`measure/save`, data)
       .then(response => {
-        return response
+        return response.data
       })
   },
   payloadNames () {

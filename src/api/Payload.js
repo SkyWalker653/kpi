@@ -25,8 +25,7 @@ export default {
   testPayloadNotification (refId) {
     return axios.get(`notify/${refId}`)
       .then(response => {
-        console.log(response)
-        return response.data
+        return response
       })
   },
 
