@@ -167,9 +167,10 @@
           <q-toolbar-title>Payload Try</q-toolbar-title>
         </q-toolbar>
         <div class="layout-padding">
-          <q-input v-if="payloadTest.responseData === ''" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
-          <div v-if="payloadTest.responseData !== ''">
-            <pre>{{this.responseData}}</pre>
+          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <div v-if="payloadTest.responseData">
+            <h6>Please note down the Reference ID</h6>
+            <pre>{{payloadTest.responseData}}</pre>
           </div>
         </div>
         <q-toolbar slot="footer">
@@ -361,10 +362,10 @@ export default {
         data: JSON.parse(this.payloadTest.data || {})
       })
         .then(res => {
-          this.payLoadTryModal = false
-          this.responseData = res
+          // this.payLoadTryModal = false
+          this.payloadTest.responseData = res
         })
-        .catch((error) => {
+        .catch(error => {
           this.$q.notify({
             message: error.data,
             type: 'negative'
