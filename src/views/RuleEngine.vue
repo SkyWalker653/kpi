@@ -2,7 +2,7 @@
   <q-page :padding=true>
     <q-table
       title="Payload Engine List"
-      :data="measures"
+      :data="sortedMeasures"
       :columns="columns"
       :filter="filter"
       row-key="measure_id">
@@ -23,14 +23,18 @@
           <q-td key="action" :props="props">
             <q-btn-dropdown color="primary" label="Action">
               <q-list dense link>
-                <q-item dense v-close-overlay>
+                <q-item dense v-close-overlay @click.native="showRuleEditModal(props.row)">
                   <q-item-side icon="create" inverted color="primary" />
                   <q-item-main label>Edit</q-item-main>
                 </q-item>
-                <q-item dense v-close-overlay>
+                <q-item dense v-close-overlay @click.native="deleteMeasure(props.row.measure_id)">
                   <q-item-side icon="delete" inverted color="negative" />
                   <q-item-main label>Delete</q-item-main>
                   <q-item-side right icon="info" color="amber" />
+                </q-item>
+                <q-item dense v-close-overlay @click.native="showPayloadTryModal(props.row)">
+                  <q-item-side icon="visibility" inverted color="tertiary" />
+                  <q-item-main label>Try</q-item-main>
                 </q-item>
               </q-list>
             </q-btn-dropdown>
@@ -74,41 +78,54 @@
                 <q-input v-model="formMeasure.measure_description" :error="$v.formMeasure.measure_description.$error" color="primary" float-label="Enter measure description" />
               </q-field>
               <q-field label="Payload Name">
-                <q-input v-model="formMeasure.measure_payload_name" :error="$v.formMeasure.measure_payload_name.$error" float-label="Enter payload name">
+                <!--<q-input v-model="formMeasure.measure_payload_name" :error="$v.formMeasure.measure_payload_name.$error" float-label="Enter payload name">
                   <q-autocomplete separator :static-data="{field: 'value', list: payloadNames}" @selected="setPayloadField()"></q-autocomplete>
-                </q-input>
+                </q-input>-->
+                <q-select
+                  filter
+                  v-model="formMeasure.measure_payload_name"
+                  :error="$v.formMeasure.measure_payload_name.$error"
+                  :options="payloadNames"
+                  float-label="Select payload name"
+                  @input="setPayloadField()"
+                />
               </q-field>
               <q-field label="Status">
                 <q-select v-model="formMeasure.measure_status" :error="$v.formMeasure.measure_status.$error" :options="measureStatus" float-label="Select measure Status"/>
               </q-field>
             </div>
             <q-stepper-navigation class="q-mt-md">
-              <q-btn color="dark" @click="$refs.stepper.next()" label="Next" />
+              <q-btn color="dark" @click="validateStepOneFormData()" label="Next" />
             </q-stepper-navigation>
           </q-step>
           <q-step name="second" title="Step 2: Denominator">
-            <q-table :data="formDenominator" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
+            <q-table hide-header :data="formDenominator" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
               <template slot="top-right" slot-scope="props" class="column">
                 <q-btn color="secondary" class="q-mr-sm" @click="addRow('formDenominator')" label="Add Row" />
               </template>
               <template slot="body" slot-scope="props">
                 <q-tr :props="props">
                   <q-td key="field" :props="props">
-                    <q-input v-model="props.row.measure_field" color="primary" float-label="Enter denominator field">
-                      <q-autocomplete separator :static-data="{field: 'value', list: fieldValues}"></q-autocomplete>
-                    </q-input>
-                  </q-td>
-                  <q-td key="value" :props="props">
-                    <q-input v-model="props.row.measure_value" color="primary" float-label="Enter denominator value" />
-                  </q-td>
-                  <q-td key="condition" :props="props">
-                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Enter denominator condition" />
+                    <q-select
+                      filter
+                      v-model="props.row.measure_field"
+                      :error="$v.formDenominator.measure_field.$error"
+                      :options="fieldValues"
+                      float-label="Denominator Field"
+                      @input="setDenominatorType(props.row)"
+                    />
                   </q-td>
                   <q-td key="type" :props="props">
-                    <q-select v-model="props.row.measure_type" :options="selectOptions.type" float-label="Enter denominator type" />
+                    <q-input v-model="props.row.measure_type" :error="$v.formDenominator.measure_type.$error" readonly float-label="Denominator Type" />
+                  </q-td>
+                  <q-td key="condition" :props="props">
+                    <q-select v-model="props.row.measure_condition" :error="$v.formDenominator.measure_condition.$error" :options="selectOptions.conditions" float-label="Denominator Condition" />
+                  </q-td>
+                  <q-td key="value" :props="props">
+                    <q-input v-model="props.row.measure_value" :error="$v.formDenominator.measure_value.$error" color="primary" float-label="Denominator Value" />
                   </q-td>
                   <q-td key="suffix" :props="props">
-                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Enter denominator suffix" />
+                    <q-select v-model="props.row.measure_suffix" :error="$v.formDenominator.measure_suffix.$error" :options="selectOptions.suffix" float-label="Denominator Suffix" />
                   </q-td>
                   <q-td key="action" :props="props">
                     <q-btn flat round color="negative" icon="delete" @click="removeRow('formDenominator', props.row.__index)" />
@@ -135,32 +152,36 @@
             </div>-->
             <q-stepper-navigation class="q-mt-md">
               <q-btn flat color="negative" class="q-mr-sm" @click="$refs.stepper.previous()" label="Back" />
-              <q-btn color="dark" @click="$refs.stepper.next()" label="Next" />
+              <q-btn color="dark" @click="validateStepTwoFormData()" label="Next" />
             </q-stepper-navigation>
           </q-step>
           <q-step name="third" title="Step 3: Denominator Exception">
-            <q-table :data="measureDenominatorException" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
+            <q-table hide-header :data="measureDenominatorException" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
               <template slot="top-right" slot-scope="props" class="column">
                 <q-btn color="secondary" class="q-mr-sm" @click="addRow('measureDenominatorException')" label="Add Row" />
               </template>
               <template slot="body" slot-scope="props">
                 <q-tr :props="props">
                   <q-td key="field" :props="props">
-                    <q-input v-model="props.row.measure_field" color="primary" float-label="Enter denominator field">
-                      <q-autocomplete separator :static-data="{field: 'value', list: fieldValues}"></q-autocomplete>
-                    </q-input>
-                  </q-td>
-                  <q-td key="value" :props="props">
-                    <q-input v-model="props.row.measure_value" color="primary" float-label="Enter denominator value" />
-                  </q-td>
-                  <q-td key="condition" :props="props">
-                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Enter denominator condition" />
+                    <q-select
+                      filter
+                      v-model="props.row.measure_field"
+                      :options="fieldValues"
+                      float-label="Denominator Field"
+                      @input="setDenominatorType(props.row)"
+                    />
                   </q-td>
                   <q-td key="type" :props="props">
-                    <q-select v-model="props.row.measure_type" :options="selectOptions.type" float-label="Enter denominator type" />
+                    <q-input v-model="props.row.measure_type" readonly float-label="Denominator Type" />
+                  </q-td>
+                  <q-td key="condition" :props="props">
+                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Denominator Condition" />
+                  </q-td>
+                  <q-td key="value" :props="props">
+                    <q-input v-model="props.row.measure_value" color="primary" float-label="Denominator Value" />
                   </q-td>
                   <q-td key="suffix" :props="props">
-                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Enter denominator suffix" />
+                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Denominator Suffix" />
                   </q-td>
                   <q-td key="action" :props="props">
                     <q-btn flat round color="negative" icon="delete" @click="removeRow('measureDenominatorException', props.row.__index)" />
@@ -174,28 +195,32 @@
             </q-stepper-navigation>
           </q-step>
           <q-step name="fourth" title="Step 4: Denominator Exclusion">
-            <q-table :data="measureDenominatorExclusion" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
+            <q-table hide-header :data="measureDenominatorExclusion" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
               <template slot="top-right" slot-scope="props" class="column">
                 <q-btn color="secondary" class="q-mr-sm" @click="addRow('measureDenominatorExclusion')" label="Add Row" />
               </template>
               <template slot="body" slot-scope="props">
                 <q-tr :props="props">
                   <q-td key="field" :props="props">
-                    <q-input v-model="props.row.measure_field" color="primary" float-label="Enter denominator field">
-                      <q-autocomplete separator :static-data="{field: 'value', list: fieldValues}"></q-autocomplete>
-                    </q-input>
-                  </q-td>
-                  <q-td key="value" :props="props">
-                    <q-input v-model="props.row.measure_value" color="primary" float-label="Enter denominator value" />
-                  </q-td>
-                  <q-td key="condition" :props="props">
-                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Enter denominator condition" />
+                    <q-select
+                      filter
+                      v-model="props.row.measure_field"
+                      :options="fieldValues"
+                      float-label="Denominator Field"
+                      @input="setDenominatorType(props.row)"
+                    />
                   </q-td>
                   <q-td key="type" :props="props">
-                    <q-select v-model="props.row.measure_type" :options="selectOptions.type" float-label="Enter denominator type" />
+                    <q-input v-model="props.row.measure_type" readonly float-label="Denominator Type" />
+                  </q-td>
+                  <q-td key="condition" :props="props">
+                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Denominator Condition" />
+                  </q-td>
+                  <q-td key="value" :props="props">
+                    <q-input v-model="props.row.measure_value" color="primary" float-label="Denominator Value" />
                   </q-td>
                   <q-td key="suffix" :props="props">
-                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Enter denominator suffix" />
+                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Denominator Suffix" />
                   </q-td>
                   <q-td key="action" :props="props">
                     <q-btn flat round color="negative" icon="delete" @click="removeRow('measureDenominatorExclusion', props.row.__index)" />
@@ -209,28 +234,32 @@
             </q-stepper-navigation>
           </q-step>
           <q-step name="fifth" title="Step 5: Numerators">
-            <q-table :data="measureNumerators" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
+            <q-table hide-header :data="measureNumerators" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
               <template slot="top-right" slot-scope="props" class="column">
                 <q-btn color="secondary" class="q-mr-sm" @click="addRow('measureNumerators')" label="Add Row" />
               </template>
               <template slot="body" slot-scope="props">
                 <q-tr :props="props">
                   <q-td key="field" :props="props">
-                    <q-input v-model="props.row.measure_field" color="primary" float-label="Enter denominator field">
-                      <q-autocomplete separator :static-data="{field: 'value', list: fieldValues}"></q-autocomplete>
-                    </q-input>
-                  </q-td>
-                  <q-td key="value" :props="props">
-                    <q-input v-model="props.row.measure_value" color="primary" float-label="Enter denominator value" />
-                  </q-td>
-                  <q-td key="condition" :props="props">
-                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Enter denominator condition" />
+                    <q-select
+                      filter
+                      v-model="props.row.measure_field"
+                      :options="fieldValues"
+                      float-label="Denominator Field"
+                      @input="setDenominatorType(props.row)"
+                    />
                   </q-td>
                   <q-td key="type" :props="props">
-                    <q-select v-model="props.row.measure_type" :options="selectOptions.type" float-label="Enter denominator type" />
+                    <q-input v-model="props.row.measure_type" readonly float-label="Denominator Type" />
+                  </q-td>
+                  <q-td key="condition" :props="props">
+                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Denominator Condition" />
+                  </q-td>
+                  <q-td key="value" :props="props">
+                    <q-input v-model="props.row.measure_value" color="primary" float-label="Denominator Value" />
                   </q-td>
                   <q-td key="suffix" :props="props">
-                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Enter denominator suffix" />
+                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Denominator Suffix" />
                   </q-td>
                   <q-td key="action" :props="props">
                     <q-btn flat round color="negative" icon="delete" @click="removeRow('measureNumerators', props.row.__index)" />
@@ -244,28 +273,32 @@
             </q-stepper-navigation>
           </q-step>
           <q-step name="sixth" title="Step 6: Numerator Exclusion">
-            <q-table :data="measureNumeratorExclusion" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
+            <q-table hide-header :data="measureNumeratorExclusion" :columns="denominatorColumns" row-key="measure_key" hide-bottom>
               <template slot="top-right" slot-scope="props" class="column">
                 <q-btn color="secondary" class="q-mr-sm" @click="addRow('measureNumeratorExclusion')" label="Add Row" />
               </template>
               <template slot="body" slot-scope="props">
                 <q-tr :props="props">
                   <q-td key="field" :props="props">
-                    <q-input v-model="props.row.measure_field" color="primary" float-label="Enter denominator field">
-                      <q-autocomplete separator :static-data="{field: 'value', list: fieldValues}"></q-autocomplete>
-                    </q-input>
-                  </q-td>
-                  <q-td key="value" :props="props">
-                    <q-input v-model="props.row.measure_value" color="primary" float-label="Enter denominator value" />
-                  </q-td>
-                  <q-td key="condition" :props="props">
-                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Enter denominator condition" />
+                    <q-select
+                      filter
+                      v-model="props.row.measure_field"
+                      :options="fieldValues"
+                      float-label="Denominator Field"
+                      @input="setDenominatorType(props.row)"
+                    />
                   </q-td>
                   <q-td key="type" :props="props">
-                    <q-select v-model="props.row.measure_type" :options="selectOptions.type" float-label="Enter denominator type" />
+                    <q-input v-model="props.row.measure_type" readonly float-label="Denominator Type" />
+                  </q-td>
+                  <q-td key="condition" :props="props">
+                    <q-select v-model="props.row.measure_condition" :options="selectOptions.conditions" float-label="Denominator Condition" />
+                  </q-td>
+                  <q-td key="value" :props="props">
+                    <q-input v-model="props.row.measure_value" color="primary" float-label="Denominator Value" />
                   </q-td>
                   <q-td key="suffix" :props="props">
-                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Enter denominator suffix" />
+                    <q-select v-model="props.row.measure_suffix" :options="selectOptions.suffix" float-label="Denominator Suffix" />
                   </q-td>
                   <q-td key="action" :props="props">
                     <q-btn flat round color="negative" icon="delete" @click="removeRow('measureNumeratorExclusion', props.row.__index)" />
@@ -287,6 +320,40 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
+    <q-modal @hide="clearTryPayloadForm()" v-model="payLoadTryModal" :content-css="{minWidth: '40vw'}">
+      <q-modal-layout>
+        <q-toolbar slot="header">
+          <q-toolbar-title>Payload Try</q-toolbar-title>
+        </q-toolbar>
+        <div class="layout-padding">
+          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <div v-if="payloadTest.responseData">
+            <h6>Please note down the Reference ID</h6>
+            <pre>{{payloadTest.responseData}}</pre>
+          </div>
+        </div>
+        <q-toolbar slot="footer">
+          <q-toolbar-title class="text-right">
+            <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
+            <q-btn flat v-close-overlay label="close"></q-btn>
+          </q-toolbar-title>
+        </q-toolbar>
+      </q-modal-layout>
+    </q-modal>
+    <q-modal v-model="ruleEditModal" :content-css="{minHeight: '300px', minWidth: '600px'}">
+      <q-modal-layout>
+        <q-toolbar slot="header">
+          <q-toolbar-title>Rule Edit</q-toolbar-title>
+        </q-toolbar>
+          <v-jsoneditor v-model="ruleEditModalFormData" ></v-jsoneditor>
+        <q-toolbar slot="footer">
+          <q-toolbar-title class="text-right">
+            <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
+            <q-btn flat v-close-overlay label="close"></q-btn>
+          </q-toolbar-title>
+        </q-toolbar>
+      </q-modal-layout>
+    </q-modal>
   </q-page>
 </template>
 
@@ -294,14 +361,18 @@
 import store from 'vuex-store'
 import _ from 'lodash'
 import { required } from 'vuelidate/lib/validators'
-// import { mapGetters } from 'vuex'
+// import QInput from 'quasar-framework/src/components/input/QInput'
+import VJsoneditor from 'vue-jsoneditor'
 
 export default {
+  components: { VJsoneditor },
   data () {
     return {
       loading: false,
       filter: '',
       showRuleEngineCreateModal: false,
+      payLoadTryModal: false,
+      ruleEditModal: false,
       columns: [
         { name: 'slno', label: '#', align: 'left' },
         { name: 'measurementid', label: 'Measurement ID', field: `measure_id`, align: 'left' },
@@ -439,7 +510,15 @@ export default {
         { name: 'action', label: 'ACTION' }
       ],
       payloadNames: [],
-      fieldValues: []
+      fieldValues: [],
+      payloadTest: {
+        organisation: '',
+        company: '',
+        data: '',
+        isResponseAvailable: '',
+        responseData: ''
+      },
+      ruleEditModalFormData: []
     }
   },
   watch: {
@@ -466,6 +545,11 @@ export default {
       measure_suffix: { required }
     }
   },
+  computed: {
+    sortedMeasures () {
+      return _.orderBy(this.measures, ['measure_id'], ['desc'])
+    }
+  },
   methods: {
     init () {
       store.dispatch('rulesEngine/listMeasureId')
@@ -480,10 +564,11 @@ export default {
     measureConditionData (measureId) {
       let finalArray = []
       Object.keys(this.measuresConditions).forEach(item => {
-        finalArray.push(this.measuresConditions[item].filter(function (el) {
+        let data = this.measuresConditions[item].filter(function (el) {
           el.measure_key = item
           return el.measure_id === measureId
-        })[0])
+        })[0]
+        finalArray.push(data)
       })
       _.remove(finalArray, function (n) {
         return n == null
@@ -562,6 +647,11 @@ export default {
       this.showRuleEngineCreateModal = true
       this.getPayloadNames()
     },
+    showPayloadTryModal (data) {
+      // this.payloadTest.organisation = data.payload_organisation
+      // this.payloadTest.company = data.payload_name
+      this.payLoadTryModal = true
+    },
     removeRow (formName, index) {
       if (formName === 'formDenominator') {
         this.formDenominator.splice(index, 1)
@@ -589,7 +679,8 @@ export default {
         } else {
           this.$q.notify({
             message: 'Please select a valid Suffix',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         }
       } else if (formName === 'measureDenominatorException') {
@@ -605,7 +696,8 @@ export default {
         } else {
           this.$q.notify({
             message: 'Please select a valid Suffix',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         }
       } else if (formName === 'measureDenominatorExclusion') {
@@ -621,7 +713,8 @@ export default {
         } else {
           this.$q.notify({
             message: 'Please select a valid Suffix',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         }
       } else if (formName === 'measureNumerators') {
@@ -637,7 +730,8 @@ export default {
         } else {
           this.$q.notify({
             message: 'Please select a valid Suffix',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         }
       } else if (formName === 'measureNumeratorExclusion') {
@@ -653,7 +747,8 @@ export default {
         } else {
           this.$q.notify({
             message: 'Please select a valid Suffix',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         }
       }
@@ -676,23 +771,25 @@ export default {
           this.init()
           this.$q.notify({
             message: res.message,
-            type: 'positive'
+            type: 'positive',
+            position: 'top-right'
           })
         })
         .catch((error) => {
           console.log(error)
           this.$q.notify({
             message: error.message,
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         })
     },
     getPayloadNames () {
       store.dispatch('rulesEngine/payloadNames')
         .then(res => {
-          // console.log(res.substr(1).slice(0, -1).split(','))
-          let data = res.substr(1).slice(0, -1).split(',')
-          data.forEach(el => {
+          // console.log(res.result.substr(1).slice(0, -1).split(','))
+          // let data = res.result.substr(1).slice(0, -1).split(',')
+          res.result.forEach(el => {
             this.payloadNames.push({
               label: el.trim(),
               value: el.trim()
@@ -703,13 +800,88 @@ export default {
     setPayloadField () {
       store.dispatch('rulesEngine/fieldValue', this.formMeasure.measure_payload_name)
         .then(res => {
-          Object.keys(res).forEach((item) => {
-            this.fieldValues.push({
-              label: item,
-              value: item
+          let _this = this
+          _.forEach(res, function (value, key) {
+            _this.fieldValues.push({
+              label: key,
+              value: key,
+              type: value
             })
           })
         })
+    },
+    setDenominatorType (data) {
+      data.measure_type = this.fieldValues.filter(el => el.value === data.measure_field)[0].type
+    },
+    submitTryPayload () {
+      store.dispatch('payload/testPayload', {
+        organisation: this.payloadTest.organisation,
+        company: this.payloadTest.company,
+        data: JSON.parse(this.payloadTest.data || {})
+      })
+        .then(res => {
+          this.payloadTest.responseData = res
+        })
+        .catch(error => {
+          this.$q.notify({
+            message: error.data,
+            type: 'negative',
+            position: 'top-right'
+          })
+        })
+        .finally(() => {
+          this.payloadTest.organisation = ''
+          this.payloadTest.company = ''
+          this.payloadTest.data = ''
+        })
+    },
+    clearTryPayloadForm () {
+      this.payloadTest.organisation = ''
+      this.payloadTest.company = ''
+      this.payloadTest.data = ''
+      this.payloadTest.responseData = ''
+    },
+    showRuleEditModal (data) {
+      let postData = []
+      let masterData = { 'measureMaster': data }
+      postData.push(masterData)
+      let measurementData = this.measureConditionData(data.measure_id)
+      postData.push(measurementData[0])
+      this.ruleEditModalFormData = postData
+      this.ruleEditModal = true
+      console.log(postData)
+    },
+    deleteMeasure (measureId) {
+      this.$q.dialog({
+        title: 'Confirm',
+        message: 'Are to sure? You want to delete the selected Measure data?',
+        ok: 'Yes',
+        cancel: 'No'
+      }).then(() => {
+        store.dispatch('rulesEngine/delete', { measureId: measureId })
+          .then((res) => {
+            this.init()
+            console.log(res)
+            this.$q.notify('Deleted')
+          })
+          .catch((error) => {
+            this.$q.notify(error)
+          })
+      }).catch(() => {
+        // this.$q.notify('Disagreed...')
+      })
+    },
+    validateStepOneFormData () {
+      this.$v.formMeasure.$touch()
+      if (!this.$v.formMeasure.$anyError) {
+        this.currentStep = 'second'
+      }
+    },
+    validateStepTwoFormData () {
+      // this.$v.formDenominator.$touch()
+      // if (!this.$v.formDenominator.$anyError) {
+      this.currentStep = 'third'
+      // }
     }
   },
   created () {

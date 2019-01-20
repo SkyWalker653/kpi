@@ -19,6 +19,12 @@ export default {
         return response.data
       })
   },
+  delete (measureId) {
+    return axios.delete(`measure/deleteMeasure/${measureId}/`)
+      .then(response => {
+        return response.data
+      })
+  },
   payloadNames () {
     return axios.get('payload/names')
       .then(response => {

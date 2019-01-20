@@ -48,6 +48,16 @@ export default {
           return res
         })
     },
+    delete (context, { measureId }) {
+      return RulesEngineApi.delete(measureId)
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Create role Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
     payloadNames ({ commit }) {
       return RulesEngineApi.payloadNames()
         .then(res => {

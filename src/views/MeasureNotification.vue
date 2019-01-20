@@ -41,7 +41,8 @@ export default {
           if (res[0].error) {
             this.$q.notify({
               message: res[0].error,
-              type: 'negative'
+              type: 'negative',
+              position: 'top-right'
             })
           } else {
             this.referenceId = ''
@@ -63,7 +64,8 @@ export default {
           console.log(error)
           this.$q.notify({
             message: 'An error occurred. Please try again.',
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         })
         .finally(() => {

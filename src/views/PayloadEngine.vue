@@ -2,7 +2,7 @@
   <q-page :padding=true>
     <q-table
       title="Payload Engine List"
-      :data="payloades"
+      :data="sortedPayloades"
       :columns="columns"
       :filter="filter"
       row-key="payload_identifier">
@@ -12,11 +12,11 @@
       <q-td slot="body-cell-action" slot-scope="props" :props="props">
         <q-btn-dropdown color="primary" label="Action">
           <q-list dense link>
-            <q-item dense v-close-overlay>
+            <q-item dense v-close-overlay @click.native="showPayloadEditModal(props.row)">
               <q-item-side icon="create" inverted color="primary" />
               <q-item-main label>Edit</q-item-main>
             </q-item>
-            <q-item dense v-close-overlay>
+            <q-item dense v-close-overlay @click.native="deletePayload(props.row.payload_identifier)">
               <q-item-side icon="delete" inverted color="negative" />
               <q-item-main label>Delete</q-item-main>
               <q-item-side right icon="info" color="warning" />
@@ -25,9 +25,9 @@
               <q-item-side icon="visibility" inverted color="tertiary" />
               <q-item-main label>Show</q-item-main>
             </q-item>
-            <q-item dense v-close-overlay @click.native="showPayloadTryModal(props.row)">
+            <q-item dense v-close-overlay @click.native="showPayloadValidationModal(props.row)">
               <q-item-side icon="visibility" inverted color="tertiary" />
-              <q-item-main label>Try</q-item-main>
+              <q-item-main label>Validate</q-item-main>
             </q-item>
           </q-list>
         </q-btn-dropdown>
@@ -53,8 +53,8 @@
       <q-modal-layout>
         <q-stepper ref="stepper" color="secondary" v-model="currentStep">
             <q-step class="no-outline" default name="first" title="Step 1" subtitle="Here we go">
-              <q-card>
-                <q-card-title class="text-deep-orange text-weight-bold">
+              <q-card class="no-shadow layout-padding">
+                <q-card-title class="text-deep-orange text-weight-bold text-center">
                   Do you have sample payload?
                 </q-card-title>
                 <q-card-separator />
@@ -65,10 +65,10 @@
                   <div class="q-title">Manual Payload</div>
                   <p>You have to follow the steps of choosing multiple fields and forming the json for testing.</p>
                 </q-card-main>
-                <q-card-actions class="justify-center">
-                  <q-btn color="indigo" class="q-px-40" @click="viewSamplePayload(true)" label="Yes" />
-                  <q-btn color="green" class="q-px-40" @click="viewSamplePayload(false)" label="No" />
-                </q-card-actions>
+                <div class="text-center q-mt-md">
+                  <q-btn color="indigo" class="q-px-xl q-mx-md" @click="viewSamplePayload(true)" label="Yes" />
+                  <q-btn color="green" class="q-px-xl q-mx-md" @click="viewSamplePayload(false)" label="No" />
+                </div>
               </q-card>
             </q-step>
             <q-step name="second" title="Step 2">
@@ -161,21 +161,37 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
-    <q-modal @hide="clearTryPayloadForm()" v-model="payLoadTryModal" :content-css="{minWidth: '40vw'}">
+    <q-modal @hide="clearValidatePayloadForm()" v-model="dataTypeValidationModal" :content-css="{minHeight: '400px', minWidth: '600px'}">
       <q-modal-layout>
         <q-toolbar slot="header">
-          <q-toolbar-title>Payload Try</q-toolbar-title>
+          <q-toolbar-title>Payload Validation</q-toolbar-title>
         </q-toolbar>
-        <div class="layout-padding">
-          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+        <div>
+          <!--<q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />-->
+          <v-jsoneditor v-model="payloadTest.data" ></v-jsoneditor>
           <div v-if="payloadTest.responseData">
-            <h6>Please note down the Reference ID</h6>
             <pre>{{payloadTest.responseData}}</pre>
           </div>
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
-            <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
+            <q-btn flat label="Submit" @click.prevent="submitValidationPayload()"></q-btn>
+            <q-btn flat v-close-overlay label="close"></q-btn>
+          </q-toolbar-title>
+        </q-toolbar>
+      </q-modal-layout>
+    </q-modal>
+
+    <q-modal @hide="clearPayloadEditModal()" v-model="payLoadEditModal" :content-css="{minHeight: '300px', minWidth: '600px'}">
+      <q-modal-layout>
+        <q-toolbar slot="header">
+          <q-toolbar-title>Payload Edit</q-toolbar-title>
+        </q-toolbar>
+          <!--<q-input type="textarea" v-model="payLoadEditModalFormData.postData" :max-height="100" rows="7" />-->
+          <v-jsoneditor v-model="payLoadEditModalFormData.postData" ></v-jsoneditor>
+        <q-toolbar slot="footer">
+          <q-toolbar-title class="text-right">
+            <q-btn flat label="Submit" @click.prevent="submitEditPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
         </q-toolbar>
@@ -189,15 +205,24 @@ import store from 'vuex-store'
 import { mapGetters } from 'vuex'
 import VueJsonPretty from 'vue-json-pretty'
 import { required } from 'vuelidate/lib/validators'
+import _ from 'lodash'
+import VJsoneditor from 'vue-jsoneditor'
 
 export default {
   data: () => ({
     loading: false,
     currentStep: 'first',
     filter: '',
+    payLoadEditModal: false,
+    payLoadEditModalFormData: {
+      payloadId: null,
+      postData: [],
+      organisation: null,
+      company: null
+    },
     payLoadCreateModalStatus: false,
     payLoadDetailShowModal: false,
-    payLoadTryModal: false,
+    dataTypeValidationModal: false,
     payloadFullDescription: [],
     isSamplePayload: true,
     payloadTest: {
@@ -210,7 +235,7 @@ export default {
     columns: [
       { name: 'slno', label: '#', align: 'left' },
       { name: 'organisation', label: 'Organisation', field: 'payload_organisation', align: 'left' },
-      { name: 'payloadname', required: true, label: 'Payload Name', align: 'left', field: 'payload_name', sortable: true },
+      { name: 'payloadname', required: true, label: 'Company Name', align: 'left', field: 'payload_name', sortable: true },
       { name: 'user', label: 'User', align: 'left', field: 'payload_user' },
       { name: 'updated', label: 'Last Updated', field: 'payload_last_updated', sortable: true },
       { name: 'status', label: 'Status', field: 'payload_status', align: 'left' },
@@ -251,10 +276,14 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('payload', ['payloades'])
+    ...mapGetters('payload', ['payloades']),
+    sortedPayloades () {
+      return _.orderBy(this.payloades, ['payload_identifier'], ['desc'])
+    }
   },
   components: {
-    VueJsonPretty
+    VueJsonPretty,
+    VJsoneditor
   },
   methods: {
     init () {
@@ -294,13 +323,15 @@ export default {
           this.init()
           this.$q.notify({
             message: res.data.result,
-            type: 'positive'
+            type: 'positive',
+            position: 'top-right'
           })
         })
         .catch((error) => {
           this.$q.notify({
             message: error.data.result,
-            type: 'negative'
+            type: 'negative',
+            position: 'top-right'
           })
         })
     },
@@ -317,11 +348,11 @@ export default {
       this.payloadFullDescription = JSON.parse(data.payload_value)
       this.payLoadDetailShowModal = true
     },
-    showPayloadTryModal (data) {
-      console.log(data)
+    showPayloadValidationModal (data) {
       this.payloadTest.organisation = data.payload_organisation
       this.payloadTest.company = data.payload_name
-      this.payLoadTryModal = true
+      this.payloadTest.data = ''
+      this.dataTypeValidationModal = true
     },
     staticPayloadData () {
       this.payloades.forEach(item => {
@@ -333,7 +364,11 @@ export default {
       this.$v.formData.$touch()
       if (this.isSamplePayload) {
         if (this.$v.formData.organisationName.$error || this.$v.formData.companyName.$error || this.$v.formData.payloadName.$error || this.$v.formData.payloadStatus.$error || this.$v.formData.payloadDescription.$error) {
-          this.$q.notify('Please fill all the fields.')
+          this.$q.notify({
+            message: 'Please fill all the fields.',
+            type: 'negative',
+            position: 'top-right'
+          })
         } else {
           this.currentStep = 'third'
         }
@@ -355,32 +390,93 @@ export default {
       this.$v.formData.$reset()
       this.currentStep = 'first'
     },
-    submitTryPayload () {
-      store.dispatch('payload/testPayload', {
+    submitValidationPayload () {
+      store.dispatch('payload/validationPayload', {
         organisation: this.payloadTest.organisation,
         company: this.payloadTest.company,
-        data: JSON.parse(this.payloadTest.data || {})
+        data: this.payloadTest.data
       })
         .then(res => {
           this.payloadTest.responseData = res
+          this.$q.notify({
+            message: 'Data validated successfully',
+            type: 'positive',
+            position: 'top-right'
+          })
         })
         .catch(error => {
           this.$q.notify({
-            message: error.data,
-            type: 'negative'
+            message: JSON.stringify(error.response.data.result),
+            type: 'negative',
+            position: 'top-right'
           })
         })
         .finally(() => {
-          this.payloadTest.organisation = ''
-          this.payloadTest.company = ''
-          this.payloadTest.data = ''
+          // this.payloadTest.organisation = ''
+          // this.payloadTest.company = ''
+          // this.payloadTest.data = ''
         })
     },
-    clearTryPayloadForm () {
+    clearValidatePayloadForm () {
       this.payloadTest.organisation = ''
       this.payloadTest.company = ''
       this.payloadTest.data = ''
       this.payloadTest.responseData = ''
+    },
+    showPayloadEditModal (data) {
+      let postData = {
+        'description': data.payload_description,
+        'status': data.payload_status,
+        'user': data.payload_user,
+        'payload': JSON.parse(data.payload_value)
+      }
+
+      this.payLoadEditModalFormData.payloadId = data.payload_identifier
+      this.payLoadEditModalFormData.organisation = data.payload_organisation
+      this.payLoadEditModalFormData.company = data.payload_name
+      this.payLoadEditModalFormData.postData = postData
+
+      // console.log(this.payLoadEditModalFormData)
+
+      this.payLoadEditModal = true
+    },
+    submitEditPayload () {
+      console.log(this.payLoadEditModalFormData)
+      store.dispatch('payload/update', {
+        payloadId: this.payLoadEditModalFormData.payloadId,
+        organisation: this.payLoadEditModalFormData.organisation,
+        companyName: this.payLoadEditModalFormData.company,
+        data: this.payLoadEditModalFormData.postData
+      })
+        .then(res => {
+          console.log(res)
+        })
+    },
+    clearPayloadEditModal () {
+      this.payLoadEditModalFormData.payloadId = null
+      this.payLoadEditModalFormData.organisation = null
+      this.payLoadEditModalFormData.company = null
+      this.payLoadEditModalFormData.postData = []
+    },
+    deletePayload (payloadId) {
+      this.$q.dialog({
+        title: 'Confirm',
+        message: 'Are to sure? You want to delete the selected Payload data?',
+        ok: 'Yes',
+        cancel: 'No'
+      }).then(() => {
+        store.dispatch('payload/delete', { payloadId: payloadId })
+          .then((res) => {
+            this.init()
+            console.log(res)
+            this.$q.notify('Deleted')
+          })
+          .catch((error) => {
+            this.$q.notify(error)
+          })
+      }).catch(() => {
+        // this.$q.notify('Disagreed...')
+      })
     }
   },
   created () {
@@ -391,4 +487,5 @@ export default {
 
 <style scoped>
   .q-stepper { box-shadow: none; }
+  .ace_content { height: 250px !important; }
 </style>

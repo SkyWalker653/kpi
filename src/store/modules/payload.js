@@ -37,19 +37,34 @@ export default {
         })
         .finally(() => {})
     },
-    testPayload (context, { organisation, company, data }) {
-      console.log('Org: ' + organisation)
-      console.log('Comp: ' + company)
-      console.log('Data: ' + JSON.stringify(data))
-      return PayloadApi.testPayload(organisation, company, data)
+    update (context, { payloadId, organisation, companyName, data }) {
+      return PayloadApi.update(payloadId, organisation, companyName, data)
         .then(res => {
-          console.log(res)
           return res
         })
         .catch((error) => {
-          console.log('Try rule Error: ' + JSON.stringify(error))
+          console.log('Create role Error: ' + JSON.stringify(error))
         })
         .finally(() => {})
+    },
+    delete (context, { payloadId }) {
+      return PayloadApi.delete(payloadId)
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Create role Error: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
+    },
+    validationPayload (context, { organisation, company, data }) {
+      // console.log('Org: ' + organisation)
+      // console.log('Comp: ' + company)
+      // console.log('Data: ' + JSON.stringify(data))
+      return PayloadApi.validationPayload(organisation, company, data)
+        .then(res => {
+          return res
+        })
     },
     testPayloadNotification (context, { refId }) {
       return PayloadApi.testPayloadNotification(refId)
