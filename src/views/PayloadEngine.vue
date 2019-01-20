@@ -161,20 +161,21 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
-    <q-modal @hide="clearValidatePayloadForm()" v-model="dataTypeValidationModal" :content-css="{minHeight: '400px', minWidth: '600px'}">
+    <q-modal @hide="clearValidatePayloadForm()" v-model="dataTypeValidationModal" :content-css="{minWidth: '600px'}">
       <q-modal-layout>
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Validation</q-toolbar-title>
         </q-toolbar>
         <div>
-          <!--<q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />-->
-          <v-jsoneditor v-model="payloadTest.data" ></v-jsoneditor>
+          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifyPayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <!--<v-jsoneditor v-model="payloadTest.data" ></v-jsoneditor>-->
           <div v-if="payloadTest.responseData">
             <pre>{{payloadTest.responseData}}</pre>
           </div>
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <q-btn flat label="Prettify" @click.prevent="prettifyPayloadTestData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitValidationPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -187,10 +188,11 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Edit</q-toolbar-title>
         </q-toolbar>
-          <!--<q-input type="textarea" v-model="payLoadEditModalFormData.postData" :max-height="100" rows="7" />-->
-          <v-jsoneditor v-model="payLoadEditModalFormData.postData" ></v-jsoneditor>
+          <q-input type="textarea" v-model="payLoadEditModalFormData.postData" @input="prettifyPayLoadEditModalFormData()" :max-height="100" rows="7" />
+          <!--<v-jsoneditor v-model="payLoadEditModalFormData.postData" ></v-jsoneditor>-->
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <q-btn flat label="Prettify" @click.prevent="prettifyPayLoadEditModalFormData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitEditPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -434,7 +436,7 @@ export default {
       this.payLoadEditModalFormData.payloadId = data.payload_identifier
       this.payLoadEditModalFormData.organisation = data.payload_organisation
       this.payLoadEditModalFormData.company = data.payload_name
-      this.payLoadEditModalFormData.postData = postData
+      this.payLoadEditModalFormData.postData = JSON.stringify(postData)
 
       // console.log(this.payLoadEditModalFormData)
 
@@ -477,6 +479,14 @@ export default {
       }).catch(() => {
         // this.$q.notify('Disagreed...')
       })
+    },
+    prettifyPayLoadEditModalFormData () {
+      let data = JSON.parse(this.payLoadEditModalFormData.postData)
+      this.payLoadEditModalFormData.postData = JSON.stringify(data, undefined, 4)
+    },
+    prettifyPayloadTestData () {
+      let data = JSON.parse(this.payloadTest.data)
+      this.payloadTest.data = JSON.stringify(data, undefined, 4)
     }
   },
   created () {

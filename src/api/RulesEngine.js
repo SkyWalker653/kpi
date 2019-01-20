@@ -36,5 +36,11 @@ export default {
       .then(response => {
         return response.data
       })
+  },
+  calculateMeasures (organisation, company, data) {
+    return axios.post(`measure/getMeasures/${organisation}/${company}`, data)
+      .then(response => {
+        return response.data
+      })
   }
 }

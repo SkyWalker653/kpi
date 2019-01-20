@@ -325,8 +325,8 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Try</q-toolbar-title>
         </q-toolbar>
-        <div class="layout-padding">
-          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+        <div class="q-ma-md">
+          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifypayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
           <div v-if="payloadTest.responseData">
             <h6>Please note down the Reference ID</h6>
             <pre>{{payloadTest.responseData}}</pre>
@@ -334,6 +334,7 @@
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <q-btn flat label="Prettify" @click.prevent="prettifypayloadTestData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -345,9 +346,11 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Rule Edit</q-toolbar-title>
         </q-toolbar>
-          <v-jsoneditor v-model="ruleEditModalFormData" ></v-jsoneditor>
+          <!--<v-jsoneditor v-model="ruleEditModalFormData" ></v-jsoneditor>-->
+        <q-input type="textarea" v-model="ruleEditModalFormData" @input="prettifyRuleEditModalFormData()" :max-height="100" rows="7" />
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <q-btn flat label="Prettify" @click.prevent="prettifyRuleEditModalFormData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -361,11 +364,8 @@
 import store from 'vuex-store'
 import _ from 'lodash'
 import { required } from 'vuelidate/lib/validators'
-// import QInput from 'quasar-framework/src/components/input/QInput'
-import VJsoneditor from 'vue-jsoneditor'
 
 export default {
-  components: { VJsoneditor },
   data () {
     return {
       loading: false,
@@ -648,8 +648,9 @@ export default {
       this.getPayloadNames()
     },
     showPayloadTryModal (data) {
-      // this.payloadTest.organisation = data.payload_organisation
-      // this.payloadTest.company = data.payload_name
+      let payloadNameArray = data.measure_payload_name.split('-')
+      this.payloadTest.organisation = payloadNameArray[0]
+      this.payloadTest.company = (payloadNameArray[1]) ? payloadNameArray[1] : ''
       this.payLoadTryModal = true
     },
     removeRow (formName, index) {
@@ -814,13 +815,14 @@ export default {
       data.measure_type = this.fieldValues.filter(el => el.value === data.measure_field)[0].type
     },
     submitTryPayload () {
-      store.dispatch('payload/testPayload', {
+      store.dispatch('rulesEngine/calculateMeasures', {
         organisation: this.payloadTest.organisation,
         company: this.payloadTest.company,
-        data: JSON.parse(this.payloadTest.data || {})
+        data: JSON.parse(this.payloadTest.data)
       })
         .then(res => {
           this.payloadTest.responseData = res
+          console.log(this.payloadTest.responseData)
         })
         .catch(error => {
           this.$q.notify({
@@ -830,9 +832,9 @@ export default {
           })
         })
         .finally(() => {
-          this.payloadTest.organisation = ''
-          this.payloadTest.company = ''
-          this.payloadTest.data = ''
+          // this.payloadTest.organisation = ''
+          // this.payloadTest.company = ''
+          // this.payloadTest.data = ''
         })
     },
     clearTryPayloadForm () {
@@ -847,9 +849,8 @@ export default {
       postData.push(masterData)
       let measurementData = this.measureConditionData(data.measure_id)
       postData.push(measurementData[0])
-      this.ruleEditModalFormData = postData
+      this.ruleEditModalFormData = JSON.stringify(postData)
       this.ruleEditModal = true
-      console.log(postData)
     },
     deleteMeasure (measureId) {
       this.$q.dialog({
@@ -882,6 +883,20 @@ export default {
       // if (!this.$v.formDenominator.$anyError) {
       this.currentStep = 'third'
       // }
+    },
+    prettifyRuleEditModalFormData () {
+      let data = JSON.parse(this.ruleEditModalFormData)
+      this.ruleEditModalFormData = JSON.stringify(data, undefined, 4)
+      // return this.ruleEditModalFormData
+    },
+    prettifypayloadTestData () {
+      let data = JSON.parse(this.payloadTest.data)
+      this.payloadTest.data = JSON.stringify(data, undefined, 4)
+      // return this.ruleEditModalFormData
+    },
+    prettifyData (data) {
+      let obj = JSON.parse(data)
+      return JSON.stringify(obj, undefined, 4)
     }
   },
   created () {

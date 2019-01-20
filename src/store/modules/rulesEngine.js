@@ -77,6 +77,16 @@ export default {
           console.log('Error fetching data. Error log: ' + JSON.stringify(error))
         })
         .finally(() => {})
+    },
+    calculateMeasures ({ commit }, { organisation, company, data }) {
+      return RulesEngineApi.calculateMeasures(organisation, company, data)
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Error fetching data. Error log: ' + JSON.stringify(error))
+        })
+        .finally(() => {})
     }
   },
   getters: {
