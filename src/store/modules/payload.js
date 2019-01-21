@@ -52,10 +52,6 @@ export default {
         .then(res => {
           return res
         })
-        .catch((error) => {
-          console.log('Create role Error: ' + JSON.stringify(error))
-        })
-        .finally(() => {})
     },
     validationPayload (context, { organisation, company, data }) {
       // console.log('Org: ' + organisation)

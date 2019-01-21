@@ -53,10 +53,6 @@ export default {
         .then(res => {
           return res
         })
-        .catch((error) => {
-          console.log('Create role Error: ' + JSON.stringify(error))
-        })
-        .finally(() => {})
     },
     payloadNames ({ commit }) {
       return RulesEngineApi.payloadNames()
