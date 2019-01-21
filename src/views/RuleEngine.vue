@@ -326,7 +326,7 @@
           <q-toolbar-title>Payload Try</q-toolbar-title>
         </q-toolbar>
         <div class="q-ma-md">
-          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifypayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifypayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="15" />
           <div v-if="payloadTest.responseData">
             <h6>Please note down the Reference ID</h6>
             <pre>{{payloadTest.responseData}}</pre>
@@ -334,6 +334,8 @@
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <span class="json-validation-success-msg float-left" v-if="payloadTest.isValidJson === true">Valid JSON data</span>
+            <span class="json-validation-error-msg float-left" v-if="payloadTest.isValidJson === false">Invalid JSON data</span>
             <q-btn flat label="Prettify" @click.prevent="prettifypayloadTestData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
@@ -347,9 +349,11 @@
           <q-toolbar-title>Rule Edit</q-toolbar-title>
         </q-toolbar>
           <!--<v-jsoneditor v-model="ruleEditModalFormData" ></v-jsoneditor>-->
-        <q-input type="textarea" v-model="ruleEditModalFormData" @input="prettifyRuleEditModalFormData()" :max-height="100" rows="7" />
+        <q-input class="q-ma-md" type="textarea" v-model="ruleEditModalFormData.data" @input="prettifyRuleEditModalFormData()" :max-height="100" rows="15" />
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <span class="json-validation-success-msg float-left" v-if="ruleEditModalFormData.isValidJson === true">Valid JSON data</span>
+            <span class="json-validation-error-msg float-left" v-if="ruleEditModalFormData.isValidJson === false">Invalid JSON data</span>
             <q-btn flat label="Prettify" @click.prevent="prettifyRuleEditModalFormData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitTryPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
@@ -516,9 +520,13 @@ export default {
         company: '',
         data: '',
         isResponseAvailable: '',
-        responseData: ''
+        responseData: '',
+        isValidJson: null
       },
-      ruleEditModalFormData: []
+      ruleEditModalFormData: {
+        'data': [],
+        'isValidJSON': null
+      }
     }
   },
   watch: {
@@ -842,6 +850,7 @@ export default {
       this.payloadTest.company = ''
       this.payloadTest.data = ''
       this.payloadTest.responseData = ''
+      this.payloadTest.isValidJson = null
     },
     showRuleEditModal (data) {
       let postData = []
@@ -849,7 +858,7 @@ export default {
       postData.push(masterData)
       let measurementData = this.measureConditionData(data.measure_id)
       postData.push(measurementData[0])
-      this.ruleEditModalFormData = JSON.stringify(postData)
+      this.ruleEditModalFormData.data = JSON.stringify(postData)
       this.ruleEditModal = true
     },
     deleteMeasure (measureId) {
@@ -884,19 +893,34 @@ export default {
       this.currentStep = 'third'
       // }
     },
+    isValidJSON (str) {
+      try {
+        return (JSON.parse(str) && !!str)
+      } catch (e) {
+        return false
+      }
+    },
     prettifyRuleEditModalFormData () {
-      let data = JSON.parse(this.ruleEditModalFormData)
-      this.ruleEditModalFormData = JSON.stringify(data, undefined, 4)
+      let validJson = this.isValidJSON(this.ruleEditModalFormData.data)
+      if (validJson) {
+        this.ruleEditModalFormData.isValidJson = true
+        let data = JSON.parse(this.ruleEditModalFormData.data)
+        this.ruleEditModalFormData.data = JSON.stringify(data, undefined, 4)
+      } else {
+        this.ruleEditModalFormData.isValidJson = false
+      }
       // return this.ruleEditModalFormData
     },
     prettifypayloadTestData () {
-      let data = JSON.parse(this.payloadTest.data)
-      this.payloadTest.data = JSON.stringify(data, undefined, 4)
+      let validJson = this.isValidJSON(this.payloadTest.data)
+      if (validJson) {
+        this.payloadTest.isValidJson = true
+        let data = JSON.parse(this.payloadTest.data)
+        this.payloadTest.data = JSON.stringify(data, undefined, 4)
+      } else {
+        this.payloadTest.isValidJson = false
+      }
       // return this.ruleEditModalFormData
-    },
-    prettifyData (data) {
-      let obj = JSON.parse(data)
-      return JSON.stringify(obj, undefined, 4)
     }
   },
   created () {
@@ -904,3 +928,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .json-validation-success-msg {
+    /*position: relative;*/
+    font-size: 14px;
+    margin-top: 7px;
+    background: darkgreen;
+    padding: 4px 10px;
+  }
+  .json-validation-error-msg {
+    /*position: relative;*/
+    font-size: 14px;
+    margin-top: 7px;
+    background: red;
+    padding: 4px 10px;
+  }
+</style>

@@ -396,11 +396,10 @@ export default {
       this.currentStep = 'first'
     },
     submitValidationPayload () {
-      console.log(this.payloadTest.data)
       store.dispatch('payload/validationPayload', {
         organisation: this.payloadTest.organisation,
         company: this.payloadTest.company,
-        data: JSON.parse(this.payloadTest.data || {})
+        data: JSON.parse(this.payloadTest.data)
       })
         .then(res => {
           this.payloadTest.responseData = res
@@ -428,6 +427,7 @@ export default {
       this.payloadTest.company = ''
       this.payloadTest.data = ''
       this.payloadTest.responseData = ''
+      this.payloadTest.isValidJson = null
     },
     showPayloadEditModal (data) {
       let postData = {
@@ -474,7 +474,6 @@ export default {
         store.dispatch('payload/delete', { payloadId: payloadId })
           .then((res) => {
             this.init()
-            console.log(res)
             this.$q.notify({
               message: 'Record Deleted successfully',
               type: 'positive',
@@ -484,7 +483,7 @@ export default {
           .catch((error) => {
             console.log(error)
             this.$q.notify({
-              message: 'An error occured.',
+              message: 'An error occurred.',
               type: 'negative',
               position: 'top-right'
             })
@@ -506,7 +505,6 @@ export default {
     },
     prettifyPayloadTestData () {
       let validJson = this.isValidJSON(this.payloadTest.data)
-      console.log(validJson)
       if (validJson) {
         this.payloadTest.isValidJson = true
         let data = JSON.parse(this.payloadTest.data)
