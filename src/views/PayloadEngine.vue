@@ -106,11 +106,12 @@
                 </q-field>
                 <q-field label="Payload Data">
                   <q-input
+                    class="q-ma-md"
                     v-model="formData.payloadData"
                     type="textarea"
                     float-label="Paste Payload Data"
                     :max-height="100"
-                    rows="7"
+                    rows="15"
                     inverted-light
                     color="grey-1"
                     :error="$v.formData.payloadData.$error"
@@ -145,14 +146,14 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Description</q-toolbar-title>
         </q-toolbar>
-        <div class="layout-padding">
-          <q-card class="transition-generic">
-          <q-card-main class="q-pa-30">
-            <vue-json-pretty
-              :data="payloadFullDescription">
-            </vue-json-pretty>
-          </q-card-main>
-        </q-card>
+        <div class="q-pa-md">
+          <q-card>
+            <q-card-main>
+              <vue-json-pretty
+                :data="payloadFullDescription">
+              </vue-json-pretty>
+            </q-card-main>
+          </q-card>
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title>
@@ -161,13 +162,13 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
-    <q-modal @hide="clearValidatePayloadForm()" v-model="dataTypeValidationModal" :content-css="{minWidth: '600px'}">
+    <q-modal @hide="clearValidatePayloadForm()" v-model="dataTypeValidationModal" :content-css="{minWidth: '800px'}">
       <q-modal-layout>
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Validation</q-toolbar-title>
         </q-toolbar>
         <div>
-          <q-input v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifyPayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="7" />
+          <q-input class="q-ma-md" v-if="!payloadTest.responseData" v-model="payloadTest.data" @input="prettifyPayloadTestData()" type="textarea" float-label="Paste JSON data here !" :max-height="100" rows="15" />
           <!--<v-jsoneditor v-model="payloadTest.data" ></v-jsoneditor>-->
           <div v-if="payloadTest.responseData">
             <pre>{{payloadTest.responseData}}</pre>
@@ -175,7 +176,9 @@
         </div>
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
-            <q-btn flat label="Prettify" @click.prevent="prettifyPayloadTestData()"></q-btn>
+            <span class="json-validation-success-msg float-left" v-if="payloadTest.isValidJson === true">Valid JSON data</span>
+            <span class="json-validation-error-msg float-left" v-if="payloadTest.isValidJson === false">Invalid JSON data</span>
+            <q-btn flat label="Format" @click.prevent="prettifyPayloadTestData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitValidationPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -183,16 +186,16 @@
       </q-modal-layout>
     </q-modal>
 
-    <q-modal @hide="clearPayloadEditModal()" v-model="payLoadEditModal" :content-css="{minHeight: '300px', minWidth: '600px'}">
+    <q-modal @hide="clearPayloadEditModal()" v-model="payLoadEditModal" :content-css="{minHeight: '300px', minWidth: '800px'}">
       <q-modal-layout>
         <q-toolbar slot="header">
           <q-toolbar-title>Payload Edit</q-toolbar-title>
         </q-toolbar>
-          <q-input type="textarea" v-model="payLoadEditModalFormData.postData" @input="prettifyPayLoadEditModalFormData()" :max-height="100" rows="7" />
+          <q-input class="q-ma-md" type="textarea" v-model="payLoadEditModalFormData.postData" @input="prettifyPayLoadEditModalFormData()" :max-height="100" rows="15" />
           <!--<v-jsoneditor v-model="payLoadEditModalFormData.postData" ></v-jsoneditor>-->
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
-            <q-btn flat label="Prettify" @click.prevent="prettifyPayLoadEditModalFormData()"></q-btn>
+            <q-btn flat label="Format" @click.prevent="prettifyPayLoadEditModalFormData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitEditPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
           </q-toolbar-title>
@@ -208,7 +211,7 @@ import { mapGetters } from 'vuex'
 import VueJsonPretty from 'vue-json-pretty'
 import { required } from 'vuelidate/lib/validators'
 import _ from 'lodash'
-import VJsoneditor from 'vue-jsoneditor'
+// import VJsoneditor from 'vue-jsoneditor'
 
 export default {
   data: () => ({
@@ -232,7 +235,8 @@ export default {
       company: '',
       data: '',
       isResponseAvailable: '',
-      responseData: ''
+      responseData: '',
+      isValidJson: null
     },
     columns: [
       { name: 'slno', label: '#', align: 'left' },
@@ -284,8 +288,7 @@ export default {
     }
   },
   components: {
-    VueJsonPretty,
-    VJsoneditor
+    VueJsonPretty
   },
   methods: {
     init () {
@@ -393,10 +396,11 @@ export default {
       this.currentStep = 'first'
     },
     submitValidationPayload () {
+      console.log(this.payloadTest.data)
       store.dispatch('payload/validationPayload', {
         organisation: this.payloadTest.organisation,
         company: this.payloadTest.company,
-        data: this.payloadTest.data
+        data: JSON.parse(this.payloadTest.data || {})
       })
         .then(res => {
           this.payloadTest.responseData = res
@@ -471,10 +475,19 @@ export default {
           .then((res) => {
             this.init()
             console.log(res)
-            this.$q.notify('Deleted')
+            this.$q.notify({
+              message: 'Record Deleted successfully',
+              type: 'positive',
+              position: 'top-right'
+            })
           })
           .catch((error) => {
-            this.$q.notify(error)
+            console.log(error)
+            this.$q.notify({
+              message: 'An error occured.',
+              type: 'negative',
+              position: 'top-right'
+            })
           })
       }).catch(() => {
         // this.$q.notify('Disagreed...')
@@ -484,9 +497,23 @@ export default {
       let data = JSON.parse(this.payLoadEditModalFormData.postData)
       this.payLoadEditModalFormData.postData = JSON.stringify(data, undefined, 4)
     },
+    isValidJSON (str) {
+      try {
+        return (JSON.parse(str) && !!str)
+      } catch (e) {
+        return false
+      }
+    },
     prettifyPayloadTestData () {
-      let data = JSON.parse(this.payloadTest.data)
-      this.payloadTest.data = JSON.stringify(data, undefined, 4)
+      let validJson = this.isValidJSON(this.payloadTest.data)
+      console.log(validJson)
+      if (validJson) {
+        this.payloadTest.isValidJson = true
+        let data = JSON.parse(this.payloadTest.data)
+        this.payloadTest.data = JSON.stringify(data, undefined, 4)
+      } else {
+        this.payloadTest.isValidJson = false
+      }
     }
   },
   created () {
@@ -498,4 +525,18 @@ export default {
 <style scoped>
   .q-stepper { box-shadow: none; }
   .ace_content { height: 250px !important; }
+  .json-validation-success-msg {
+    /*position: relative;*/
+    font-size: 14px;
+    margin-top: 7px;
+    background: darkgreen;
+    padding: 4px 10px;
+  }
+  .json-validation-error-msg {
+    /*position: relative;*/
+    font-size: 14px;
+    margin-top: 7px;
+    background: red;
+    padding: 4px 10px;
+  }
 </style>
