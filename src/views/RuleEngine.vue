@@ -576,9 +576,6 @@ export default {
           el.measure_key = item
           return el.measure_id === measureId
         })[0]
-        if (data) {
-          console.log(data)
-        }
         finalArray.push(data)
       })
       _.remove(finalArray, function (n) {
@@ -589,7 +586,6 @@ export default {
     rules () {
       var rulesEngine = []
       for (var i = 0; i < this.measureIds.length; i++) {
-        // console.log()
         var data = {
           // 'measure_data': this.measureIds[i]
           'measure_id': this.measureIds[i].measure_id,
@@ -766,13 +762,23 @@ export default {
       }
     },
     createMeasure () {
-      let postData = {
-        'measureMaster': this.formMeasure,
-        'measureDenomnators': this.formDenominator,
-        'measureDenominatorExclusion': this.measureDenominatorExclusion,
-        'MeasureNumeratorExclusion': this.MeasureNumeratorExclusion,
-        'measureDenominatorException': this.measureDenominatorException,
-        'measureNumerators': this.measureNumerators
+      let postData = {}
+      postData.measureMaster = this.formMeasure
+      debugger
+      if (this.formDenominator[0].measure_value) {
+        postData.measureDenomnators = this.formDenominator
+      }
+      if (this.measureDenominatorExclusion[0].measure_value) {
+        postData.measureDenominatorExclusion = this.measureDenominatorExclusion
+      }
+      if (this.measureNumeratorExclusion[0].measure_value) {
+        postData.measureNumeratorExclusion = this.measureNumeratorExclusion
+      }
+      if (this.measureDenominatorException[0].measure_value) {
+        postData.measureDenominatorException = this.measureDenominatorException
+      }
+      if (this.measureNumerators[0].measure_value) {
+        postData.measureNumerators = this.measureNumerators
       }
 
       store.dispatch('rulesEngine/create', postData)
@@ -833,7 +839,7 @@ export default {
       })
         .then(res => {
           this.payloadTest.responseData = res
-          console.log(this.payloadTest.responseData)
+          // console.log(this.payloadTest.responseData)
         })
         .catch(error => {
           this.$q.notify({
