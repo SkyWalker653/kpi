@@ -195,6 +195,8 @@
           <!--<v-jsoneditor v-model="payLoadEditModalFormData.postData" ></v-jsoneditor>-->
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
+            <span class="json-validation-success-msg float-left" v-if="payLoadEditModalFormData.isValidJson === true">Valid JSON data</span>
+            <span class="json-validation-error-msg float-left" v-if="payLoadEditModalFormData.isValidJson === false">Invalid JSON data</span>
             <q-btn flat label="Format" @click.prevent="prettifyPayLoadEditModalFormData()"></q-btn>
             <q-btn flat label="Submit" @click.prevent="submitEditPayload()"></q-btn>
             <q-btn flat v-close-overlay label="close"></q-btn>
@@ -223,7 +225,8 @@ export default {
       payloadId: null,
       postData: [],
       organisation: null,
-      company: null
+      company: null,
+      isValidJson: null
     },
     payLoadCreateModalStatus: false,
     payLoadDetailShowModal: false,
@@ -452,10 +455,29 @@ export default {
         payloadId: this.payLoadEditModalFormData.payloadId,
         organisation: this.payLoadEditModalFormData.organisation,
         companyName: this.payLoadEditModalFormData.company,
-        data: this.payLoadEditModalFormData.postData
+        data: JSON.parse(this.payLoadEditModalFormData.postData)
       })
         .then(res => {
           console.log(res)
+          this.payLoadEditModal = false
+          this.clearPayloadEditModal()
+          this.init()
+          this.$q.notify({
+            message: res.result,
+            type: 'positive',
+            position: 'top-right'
+          })
+        })
+        .catch(error => {
+          console.log(error)
+          this.payLoadEditModal = false
+          this.clearPayloadEditModal()
+          this.init()
+          this.$q.notify({
+            message: 'An unexpected error occurred!',
+            type: 'negative',
+            position: 'top-right'
+          })
         })
     },
     clearPayloadEditModal () {
@@ -463,6 +485,7 @@ export default {
       this.payLoadEditModalFormData.organisation = null
       this.payLoadEditModalFormData.company = null
       this.payLoadEditModalFormData.postData = []
+      this.payLoadEditModalFormData.isValidJson = null
     },
     deletePayload (payloadId) {
       this.$q.dialog({
@@ -493,8 +516,17 @@ export default {
       })
     },
     prettifyPayLoadEditModalFormData () {
-      let data = JSON.parse(this.payLoadEditModalFormData.postData)
-      this.payLoadEditModalFormData.postData = JSON.stringify(data, undefined, 4)
+      // let data = JSON.parse(this.payLoadEditModalFormData.postData)
+      // this.payLoadEditModalFormData.postData = JSON.stringify(data, undefined, 4)
+
+      let validJson = this.isValidJSON(this.payLoadEditModalFormData.postData)
+      if (validJson) {
+        this.payLoadEditModalFormData.isValidJson = true
+        let data = JSON.parse(this.payLoadEditModalFormData.postData)
+        this.payLoadEditModalFormData.postData = JSON.stringify(data, undefined, 4)
+      } else {
+        this.payLoadEditModalFormData.isValidJson = false
+      }
     },
     isValidJSON (str) {
       try {
