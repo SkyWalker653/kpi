@@ -576,6 +576,9 @@ export default {
           el.measure_key = item
           return el.measure_id === measureId
         })[0]
+        if (data) {
+          console.log(data)
+        }
         finalArray.push(data)
       })
       _.remove(finalArray, function (n) {
@@ -678,7 +681,7 @@ export default {
       if (formName === 'formDenominator') {
         if (_.last(this.formDenominator).measure_suffix !== 'NO SUFFIX' && _.last(this.formDenominator).measure_suffix !== '') {
           this.formDenominator.push({
-            measure_id: '',
+            measure_id: this.measureId,
             measure_field: '',
             measure_value: '',
             measure_condition: '',
@@ -695,7 +698,7 @@ export default {
       } else if (formName === 'measureDenominatorException') {
         if (_.last(this.measureDenominatorException).measure_suffix !== 'NO SUFFIX' && _.last(this.measureDenominatorException).measure_suffix !== '') {
           this.measureDenominatorException.push({
-            measure_id: '',
+            measure_id: this.measureId,
             measure_field: '',
             measure_value: '',
             measure_condition: '',
@@ -712,7 +715,7 @@ export default {
       } else if (formName === 'measureDenominatorExclusion') {
         if (_.last(this.measureDenominatorExclusion).measure_suffix !== 'NO SUFFIX' && _.last(this.measureDenominatorExclusion).measure_suffix !== '') {
           this.measureDenominatorExclusion.push({
-            measure_id: '',
+            measure_id: this.measureId,
             measure_field: '',
             measure_value: '',
             measure_condition: '',
@@ -729,7 +732,7 @@ export default {
       } else if (formName === 'measureNumerators') {
         if (_.last(this.measureNumerators).measure_suffix !== 'NO SUFFIX' && _.last(this.measureNumerators).measure_suffix !== '') {
           this.measureNumerators.push({
-            measure_id: '',
+            measure_id: this.measureId,
             measure_field: '',
             measure_value: '',
             measure_condition: '',
@@ -746,7 +749,7 @@ export default {
       } else if (formName === 'measureNumeratorExclusion') {
         if (_.last(this.measureNumeratorExclusion).measure_suffix !== 'NO SUFFIX' && _.last(this.measureNumeratorExclusion).measure_suffix !== '') {
           this.measureNumeratorExclusion.push({
-            measure_id: '',
+            measure_id: this.measureId,
             measure_field: '',
             measure_value: '',
             measure_condition: '',
