@@ -44,7 +44,7 @@
           <q-td colspan="100%" class="no-padding">
             <template>
               <q-table :data="measureConditionData(props.row.measure_id)"
-                :columns="measuresConditionsColumns" row-key="measure_key" hide-bottom color="primary"
+                :columns="measuresConditionsColumns" row-key="__index" hide-bottom color="primary"
               />
             </template>
           </q-td>
@@ -348,7 +348,6 @@
         <q-toolbar slot="header">
           <q-toolbar-title>Rule Edit</q-toolbar-title>
         </q-toolbar>
-          <!--<v-jsoneditor v-model="ruleEditModalFormData" ></v-jsoneditor>-->
         <q-input class="q-ma-md" type="textarea" v-model="ruleEditModalFormData.data" @input="prettifyRuleEditModalFormData()" :max-height="100" rows="15" />
         <q-toolbar slot="footer">
           <q-toolbar-title class="text-right">
@@ -389,9 +388,9 @@ export default {
       measuresConditionsColumns: [
         { name: 'measureKey', label: 'Measure Key', field: `measure_key` },
         { name: 'measureField', label: 'Measure Field', field: `measure_field` },
-        { name: 'measureValue', label: 'Measure Value', field: `measure_value` },
-        { name: 'measureCondition', label: 'Measure Condition', field: `measure_condition` },
         { name: 'measureType', label: 'Measure Type', field: `measure_type` },
+        { name: 'measureCondition', label: 'Measure Condition', field: `measure_condition` },
+        { name: 'measureValue', label: 'Measure Value', field: `measure_value` },
         { name: 'measureSuffix', label: 'Measure Suffix', field: `measure_suffix` }
       ],
       measures: [],
@@ -573,13 +572,12 @@ export default {
       let finalArray = []
       Object.keys(this.measuresConditions).forEach(item => {
         let data = this.measuresConditions[item].filter(function (el) {
-          el.measure_key = item
+          el.measure_key = _.upperFirst(_.toLower(_.upperCase(_.replace(item, 'measure', ''))))
           return el.measure_id === measureId
-        })[0]
-        finalArray.push(data)
-      })
-      _.remove(finalArray, function (n) {
-        return n == null
+        })
+        data.forEach(el => {
+          finalArray.push(el)
+        })
       })
       return finalArray
     },
@@ -866,7 +864,20 @@ export default {
       let masterData = { 'measureMaster': data }
       postData.push(masterData)
       let measurementData = this.measureConditionData(data.measure_id)
-      postData.push(measurementData[0])
+      console.log(measurementData)
+
+      measurementData.forEach(item => {
+        if (item.measure_key === 'Denomnators') {
+          postData.push({ 'measureDenomnators': item })
+        } else if (item.measure_key === 'Denominator exception') {
+          postData.push({ 'measureDenominatorException': item })
+        } else if (item.measure_key === 'Denominator exclusion') {
+          postData.push({ 'measureDenominatorExclusion': item })
+        } else if (item.measure_key === 'Numerators') {
+          postData.push({ 'measureNumerators': item })
+        }
+      })
+
       this.ruleEditModalFormData.data = JSON.stringify(postData)
       this.ruleEditModal = true
     },
