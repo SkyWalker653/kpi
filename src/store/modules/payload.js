@@ -83,6 +83,16 @@ export default {
           console.log('Try notification Error: ' + JSON.stringify(error))
         })
         .finally(() => {})
+    },
+    listRules ({ commit }, { organisation, company }) {
+      return PayloadApi.listRules(organisation, company)
+        .then(res => {
+          return res
+        })
+        .catch((error) => {
+          console.log('Error fetching payloades ' + JSON.stringify(error))
+        })
+        .finally(() => {})
     }
   },
   getters: {

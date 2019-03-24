@@ -9,6 +9,9 @@
       <q-td slot="body-cell-slno" slot-scope="row">
         {{ row.row.__index + 1 }}
       </q-td>
+      <q-td slot="body-cell-rules" slot-scope="props" :props="props">
+        <q-btn flat color="primary" label="View" @click="showRulesModal(props.row.payload_organisation, props.row.payload_name)"></q-btn>
+      </q-td>
       <q-td slot="body-cell-action" slot-scope="props" :props="props">
         <q-btn-dropdown color="primary" label="Action">
           <q-list dense link>
@@ -204,6 +207,33 @@
         </q-toolbar>
       </q-modal-layout>
     </q-modal>
+
+    <q-modal v-model="rulesShowModal" :content-css="{minWidth: '60vw', minHeight: '80vh'}">
+      <q-table
+        title="Rules List"
+        :data="rules"
+        :columns="rulesTableColumns"
+        row-key="rules.master.measure_id">
+        <template slot="body" slot-scope="props">
+          <q-tr :props="props">
+            <q-td key="slno" :props="props">
+              <q-checkbox color="primary" v-model="props.expand" checked-icon="remove" unchecked-icon="add" class="q-mr-md" />
+            </q-td>
+            <q-td key="measureId" :props="props">{{ props.row.master.measure_id }}</q-td>
+            <q-td key="measureDescription" :props="props">{{ props.row.master.measure_description }}</q-td>
+          </q-tr>
+          <q-tr v-show="props.expand" :props="props">
+            <q-td colspan="100%" class="no-padding">
+              <template>
+                <q-table :data="rulesInnerTableData(props.row.rules)"
+                         :columns="rulesExpandTableColumns" row-key="__index" hide-bottom color="primary"
+                />
+              </template>
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
+    </q-modal>
   </q-page>
 </template>
 
@@ -230,6 +260,7 @@ export default {
     },
     payLoadCreateModalStatus: false,
     payLoadDetailShowModal: false,
+    rulesShowModal: false,
     dataTypeValidationModal: false,
     payloadFullDescription: [],
     isSamplePayload: true,
@@ -248,8 +279,23 @@ export default {
       { name: 'user', label: 'User', align: 'left', field: 'payload_user' },
       { name: 'updated', label: 'Last Updated', field: 'payload_last_updated', sortable: true },
       { name: 'status', label: 'Status', field: 'payload_status', align: 'left' },
+      { name: 'rules', label: 'Rules', align: 'center' },
       { name: 'action', label: 'Action', align: 'right' }
     ],
+    rulesTableColumns: [
+      { name: 'slno', label: '#', align: 'left' },
+      { name: 'measureId', label: 'Measure Id', align: 'left', field: `measure_id` },
+      { name: 'measureDescription', label: 'Measure Description', align: 'left', field: `measure_description` }
+    ],
+    rulesExpandTableColumns: [
+      { name: 'measureKey', label: 'Measure Key', field: `measure_key` },
+      { name: 'measureField', label: 'Measure Field', field: `measure_field` },
+      { name: 'measureType', label: 'Measure Type', field: `measure_type` },
+      { name: 'measureCondition', label: 'Measure Condition', field: `measure_condition` },
+      { name: 'measureValue', label: 'Measure Value', field: `measure_value` },
+      { name: 'measureSuffix', label: 'Measure Suffix', field: `measure_suffix` }
+    ],
+    rules: [],
 
     formData: {
       organisationName: '',
@@ -544,6 +590,26 @@ export default {
       } else {
         this.payloadTest.isValidJson = false
       }
+    },
+    showRulesModal (organisation, company) {
+      this.rulesShowModal = true
+      store.dispatch('payload/listRules', { organisation: organisation, company: company })
+        .then(res => {
+          this.rules = res
+        })
+    },
+    rulesInnerTableData (rules) {
+      let finalArray = []
+      Object.keys(rules).forEach(item => {
+        rules[item].filter(function (el) {
+          el.measure_key = _.upperFirst(_.toLower(_.upperCase(_.replace(item, 'measure', ''))))
+          // return el.measure_id === measureId
+          if (el.measure_value !== '') {
+            finalArray.push(el)
+          }
+        })
+      })
+      return finalArray
     }
   },
   created () {
